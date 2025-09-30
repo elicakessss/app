@@ -29,8 +29,16 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'danger' => Color::Rose,
+                'gray' => Color::Slate,
+                'info' => Color::Blue,
+                'primary' => Color::Indigo,
+                // 'primary' => Color::Hex('#006400'),
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
             ])
+            ->font('Segoe UI Variable')
+            ->breadcrumbs(false)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
