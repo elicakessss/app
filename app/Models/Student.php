@@ -52,4 +52,14 @@ class Student extends Authenticatable
     {
         return "{$this->first_name} {$this->last_name}";
     }
+
+    /**
+     * Get the organizations that this student belongs to.
+     */
+    public function organizations(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Organization::class, 'organization_student')
+            ->withPivot('position')
+            ->withTimestamps();
+    }
 }
