@@ -23,7 +23,9 @@ class StudentFactory extends Factory
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
             'email' => $this->faker->unique()->safeEmail(),
-            'school_number' => $this->faker->optional(0.7)->numerify('STU####'),
+            'email_verified_at' => now(),
+            'password' => bcrypt('password'), // Default password for testing
+            'school_number' => $this->faker->numerify('STU####'), // Always generate a school number
             'profile_picture' => null, // We'll leave this null for factory data
             'bio' => $this->faker->optional(0.6)->paragraph(3),
         ];

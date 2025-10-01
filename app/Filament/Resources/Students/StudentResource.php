@@ -11,9 +11,11 @@ use App\Models\Student;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
+/**
+ * Filament resource for managing students in the admin panel.
+ */
 class StudentResource extends Resource
 {
     protected static ?string $model = Student::class;
@@ -28,23 +30,33 @@ class StudentResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    /**
+     * Configure the form schema for creating/editing students.
+     */
     public static function form(Schema $schema): Schema
     {
         return StudentForm::configure($schema);
     }
 
+    /**
+     * Configure the table for listing students.
+     */
     public static function table(Table $table): Table
     {
         return StudentsTable::configure($table);
     }
 
+    /**
+     * Get the relations that can be eager loaded.
+     */
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
+    /**
+     * Get the pages available for this resource.
+     */
     public static function getPages(): array
     {
         return [
