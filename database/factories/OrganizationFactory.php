@@ -17,16 +17,14 @@ class OrganizationFactory extends Factory
     public function definition(): array
     {
         $year = $this->faker->numberBetween(2020, 2025);
-        $orgTypes = ['Department', 'Division', 'Office', 'Bureau', 'Unit'];
-        $orgType = $this->faker->randomElement($orgTypes);
-        $name = $orgType . ' of ' . $this->faker->words(2, true);
+        $deptNames = ['Technology', 'Student Affairs', 'Academic Affairs', 'Administration', 'Finance'];
+        $deptName = $this->faker->randomElement($deptNames);
         
         return [
-            'name' => $name,
-            'code' => strtoupper($this->faker->lexify('???')) . $year,
+            'department_id' => \App\Models\Department::factory(),
+            'name' => $deptName . ' ' . $year . '-' . ($year + 1),
             'description' => $this->faker->paragraph(),
             'year' => $year,
-            'is_active' => $this->faker->boolean(85), // 85% chance of being active
         ];
     }
 }

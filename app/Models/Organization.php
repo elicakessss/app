@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Organization extends Model
@@ -11,17 +12,24 @@ class Organization extends Model
     use HasFactory;
 
     protected $fillable = [
+        'department_id',
         'name',
-        'code',
+        'logo',
         'description',
         'year',
-        'is_active',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
         'year' => 'integer',
     ];
+
+    /**
+     * Get the department that owns this organization.
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
 
     /**
      * Get the students that belong to this organization.
@@ -34,11 +42,11 @@ class Organization extends Model
     }
 
     /**
-     * Scope a query to only include active organizations.
+     * Scope a query to filter by department.
      */
-    public function scopeActive($query)
+    public function scopeForDepartment($query, $departmentId)
     {
-        return $query->where('is_active', true);
+        return $query->where('department_id', $departmentId);
     }
 
     /**

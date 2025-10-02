@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
 use App\Models\Organization;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -13,57 +14,33 @@ class OrganizationSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create some sample organizations
-        $organizations = [
+        // First create some departments
+        $departments = [
             [
-                'name' => 'Department of Information Technology',
-                'code' => 'DIT2024',
-                'description' => 'Responsible for IT infrastructure and digital services',
-                'year' => 2024,
-                'is_active' => true,
+                'name' => 'School of Information Technology and Engineering',
+                'abbreviation' => 'SITE',
+                'description' => ' ',
             ],
             [
-                'name' => 'Human Resources Division',
-                'code' => 'HRD2024',
-                'description' => 'Manages human resources and employee development',
-                'year' => 2024,
-                'is_active' => true,
+                'name' => 'School of Art Sciences and Teacher Education',
+                'abbreviation' => 'SASTE',
+                'description' => ' ',
             ],
             [
-                'name' => 'Finance and Budget Office',
-                'code' => 'FBO2024',
-                'description' => 'Handles financial planning and budget management',
-                'year' => 2024,
-                'is_active' => true,
+                'name' => 'School of Business and Hospitality Management',
+                'abbreviation' => 'SBAHM',
+                'description' => ' ',
             ],
             [
-                'name' => 'Legal Affairs Unit',
-                'code' => 'LAU2024',
-                'description' => 'Provides legal counsel and compliance oversight',
-                'year' => 2024,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Public Relations Bureau',
-                'code' => 'PRB2024',
-                'description' => 'Manages public communications and media relations',
-                'year' => 2024,
-                'is_active' => false, // Inactive for testing
-            ],
-            [
-                'name' => 'Administrative Services',
-                'code' => 'ADM2023',
-                'description' => 'General administrative support and services',
-                'year' => 2023,
-                'is_active' => true,
+                'name' => 'School of Nursing and Allied Health Sciences',
+                'abbreviation' => 'SNAHS',
+                'description' => ' ',
             ],
         ];
 
-        foreach ($organizations as $org) {
-            Organization::create($org);
+        foreach ($departments as $dept) {
+            Department::create($dept);
         }
 
-        // Create some additional organizations using factory
-        Organization::factory(5)->create();
     }
 }

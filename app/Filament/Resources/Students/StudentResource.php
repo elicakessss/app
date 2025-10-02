@@ -20,15 +20,15 @@ class StudentResource extends Resource
 {
     protected static ?string $model = Student::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-academic-cap';
 
-    protected static ?string $recordTitleAttribute = 'first_name';
+    protected static ?int $navigationSort = 10;
+
+    protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Student';
 
     protected static ?string $pluralModelLabel = 'Students';
-
-    protected static ?int $navigationSort = 1;
 
     /**
      * Configure the form schema for creating/editing students.

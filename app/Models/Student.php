@@ -16,13 +16,9 @@ class Student extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'first_name',
-        'last_name',
+        'name',
         'email',
         'password',
-        'school_number',
-        'profile_picture',
-        'bio',
     ];
 
     /**
@@ -44,14 +40,6 @@ class Student extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-
-    /**
-     * Get the student's full name.
-     */
-    public function getFullNameAttribute(): string
-    {
-        return "{$this->first_name} {$this->last_name}";
-    }
 
     /**
      * Get the organizations that this student belongs to.

@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Filament\Resources\Organizations\Pages;
+namespace App\Filament\Resources\Departments\Pages;
 
-use App\Filament\Resources\Organizations\OrganizationResource;
+use App\Filament\Resources\Departments\DepartmentResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
-class EditOrganization extends EditRecord
+class EditDepartment extends EditRecord
 {
-    protected static string $resource = OrganizationResource::class;
+    protected static string $resource = DepartmentResource::class;
 
     protected function getRedirectUrl(): string
     {
-        // If the form was submitted (not from relation manager), redirect to index
-        // The relation manager operations will stay on the edit page
         return $this->getResource()::getUrl('index');
     }
 

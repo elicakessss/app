@@ -19,7 +19,9 @@ class OrganizationResource extends Resource
 {
     protected static ?string $model = Organization::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office-2';
+
+    protected static ?int $navigationSort = 30;
 
     protected static ?string $navigationLabel = 'Organizations';
 
@@ -28,8 +30,6 @@ class OrganizationResource extends Resource
     protected static ?string $pluralModelLabel = 'Organizations';
 
     protected static ?string $recordTitleAttribute = 'name';
-
-    protected static ?int $navigationSort = 10;
 
     public static function form(Schema $schema): Schema
     {
@@ -65,13 +65,13 @@ class OrganizationResource extends Resource
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['name', 'code', 'description'];
+        return ['name', 'description', 'department.name'];
     }
 
     public static function getGlobalSearchResultDetails($record): array
     {
         return [
-            'Code' => $record->code,
+            'Department' => $record->department->name,
             'Year' => $record->year,
             'Students' => $record->students->count(),
         ];

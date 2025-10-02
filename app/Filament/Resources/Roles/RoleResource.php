@@ -12,20 +12,23 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-shield-check';
+
+    protected static string|UnitEnum|null $navigationGroup = 'System Settings';
+
+    protected static ?int $navigationSort = 30;
 
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Role';
 
     protected static ?string $pluralModelLabel = 'Roles';
-
-    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

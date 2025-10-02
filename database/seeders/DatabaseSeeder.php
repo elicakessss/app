@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
         // Seed roles, permissions, and admin user
         $this->call([
             RolePermissionSeeder::class,
-            StudentSeeder::class,
         ]);
 
         // Create test users with roles

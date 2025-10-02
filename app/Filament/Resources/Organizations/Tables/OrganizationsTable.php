@@ -7,10 +7,9 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Enums\FontWeight;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class OrganizationsTable
@@ -19,39 +18,39 @@ class OrganizationsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
+                ImageColumn::make('logo')
+                    ->label('Logo')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(function ($record) {
+                        return 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF';
+                    }),
+
+                    TextColumn::make('name')
                     ->label('Organization Name')
+                    ->searchable()
+                    ->sortable(),
+
+                    TextColumn::make('year')
+                    ->label('Year')
+                    ->sortable()
+                    ->alignCenter()
+                    ->badge()
+                    ->color('primary')
+                    ->formatStateUsing(fn ($state) => $state . '-' . ($state + 1)),
+                
+                    TextColumn::make('department.name')
+                    ->label('Department')
                     ->searchable()
                     ->sortable()
                     ->weight(FontWeight::SemiBold),
-
-                TextColumn::make('code')
-                    ->label('Code')
-                    ->searchable()
-                    ->sortable()
-                    ->badge()
-                    ->color('gray'),
-
-                TextColumn::make('year')
-                    ->label('Year')
-                    ->sortable()
-                    ->alignCenter(),
-
-                IconColumn::make('is_active')
-                    ->label('Status')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('danger')
-                    ->alignCenter(),
 
                 TextColumn::make('students_count')
                     ->label('Students')
                     ->counts('students')
                     ->alignCenter()
                     ->badge()
-                    ->color('primary'),
+                    ->color('success'),
 
                 TextColumn::make('description')
                     ->label('Description')
@@ -63,30 +62,23 @@ class OrganizationsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                TextColumn::make('updated_at')
-                    ->label('Updated')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('department_id')
+                    ->label('Department')
+                    ->relationship('department', 'name'),
+
                 SelectFilter::make('year')
                     ->label('Academic Year')
                     ->options(function () {
                         $currentYear = date('Y');
                         $years = [];
                         for ($i = $currentYear - 5; $i <= $currentYear + 2; $i++) {
-                            $years[$i] = $i;
+                            $nextYear = $i + 1;
+                            $years[$i] = "$i-$nextYear";
                         }
                         return $years;
                     }),
-
-                TernaryFilter::make('is_active')
-                    ->label('Status')
-                    ->trueLabel('Active only')
-                    ->falseLabel('Inactive only')
-                    ->native(false),
             ])
             ->recordActions([
                 ViewAction::make(),

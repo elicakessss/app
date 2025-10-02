@@ -17,7 +17,7 @@ class StudentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'students';
 
-    protected static ?string $recordTitleAttribute = 'full_name';
+    protected static ?string $recordTitleAttribute = 'name';
 
     public function form(Schema $schema): Schema
     {
@@ -35,18 +35,13 @@ class StudentsRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                TextColumn::make('full_name')
+                TextColumn::make('name')
                     ->label('Student Name')
-                    ->searchable(['first_name', 'last_name'])
+                    ->searchable()
                     ->sortable(),
 
                 TextColumn::make('email')
                     ->label('Email')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('school_number')
-                    ->label('School Number')
                     ->searchable()
                     ->toggleable(),
 
@@ -69,7 +64,7 @@ class StudentsRelationManager extends RelationManager
                     ->form(fn (AttachAction $action): array => [
                         Select::make('recordId')
                             ->label('Student')
-                            ->options(Student::all()->pluck('full_name', 'id'))
+                            ->options(Student::all()->pluck('name', 'id'))
                             ->searchable()
                             ->required(),
                         
