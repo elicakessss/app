@@ -14,6 +14,7 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class OrganizationResource extends Resource
 {
@@ -31,6 +32,33 @@ class OrganizationResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function canAccess(): bool
+    {
+        // Allow access for admin role or users with manage-organizations permission
+        return auth()->user()?->hasRole('Admin') || 
+               auth()->user()?->can('manage organizations') ?? false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canEdit($record): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasRole('Admin') ?? false; // Only admin can delete
+    }
+
     public static function form(Schema $schema): Schema
     {
         return OrganizationForm::configure($schema);
@@ -39,6 +67,19 @@ class OrganizationResource extends Resource
     public static function table(Table $table): Table
     {
         return OrganizationsTable::configure($table);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()->with(['user', 'department']);
+        
+        // Filter organizations by user's department
+        $user = auth()->user();
+        if ($user && $user->department_id) {
+            $query->where('department_id', $user->department_id);
+        }
+        
+        return $query;
     }
 
     public static function getRelations(): array

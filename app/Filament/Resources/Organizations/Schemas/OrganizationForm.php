@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Organizations\Schemas;
 
 use App\Models\Department;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,6 +16,9 @@ class OrganizationForm
     {
         return $schema
             ->components([
+                Hidden::make('user_id')
+                    ->default(auth()->id()),
+
                 TextInput::make('name')
                     ->label('Organization Name')
                     ->required()

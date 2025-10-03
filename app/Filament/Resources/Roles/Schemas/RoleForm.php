@@ -20,7 +20,12 @@ class RoleForm
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(125)
-                            ->helperText('Enter a unique name for this role'),
+                            ->disabled(fn ($record) => $record && $record->name === 'Admin')
+                            ->helperText(fn ($record) => 
+                                $record && $record->name === 'Admin' 
+                                    ? 'Admin role name cannot be changed to prevent system lockout'
+                                    : 'Enter a unique name for this role'
+                            ),
                         TextInput::make('guard_name')
                             ->default('web')
                             ->required()

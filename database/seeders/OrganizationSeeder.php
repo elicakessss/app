@@ -14,27 +14,27 @@ class OrganizationSeeder extends Seeder
      */
     public function run(): void
     {
-        // First create some departments
+        // First create the departments
         $departments = [
             [
                 'name' => 'School of Information Technology and Engineering',
                 'abbreviation' => 'SITE',
-                'description' => ' ',
+                'description' => 'Information Technology and Engineering Department',
             ],
             [
-                'name' => 'School of Art Sciences and Teacher Education',
+                'name' => 'School of Arts Sciences and Teacher Education',
                 'abbreviation' => 'SASTE',
-                'description' => ' ',
+                'description' => 'Arts Sciences and Teacher Education Department',
             ],
             [
-                'name' => 'School of Business and Hospitality Management',
+                'name' => 'School of Business, Accountancy, and Hospitality Management',
                 'abbreviation' => 'SBAHM',
-                'description' => ' ',
+                'description' => 'Business, Accountancy, and Hospitality Management Department',
             ],
             [
                 'name' => 'School of Nursing and Allied Health Sciences',
                 'abbreviation' => 'SNAHS',
-                'description' => ' ',
+                'description' => 'Nursing and Allied Health Sciences Department',
             ],
         ];
 

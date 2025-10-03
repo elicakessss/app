@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\Organizations\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -18,50 +18,45 @@ class OrganizationsTable
     {
         return $table
             ->columns([
-                ImageColumn::make('logo')
-                    ->label('Logo')
-                    ->circular()
-                    ->size(40)
-                    ->defaultImageUrl(function ($record) {
-                        return 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF';
-                    }),
-
-                    TextColumn::make('name')
-                    ->label('Organization Name')
-                    ->searchable()
-                    ->sortable(),
-
-                    TextColumn::make('year')
-                    ->label('Year')
-                    ->sortable()
-                    ->alignCenter()
-                    ->badge()
-                    ->color('primary')
-                    ->formatStateUsing(fn ($state) => $state . '-' . ($state + 1)),
-                
-                    TextColumn::make('department.name')
-                    ->label('Department')
-                    ->searchable()
-                    ->sortable()
-                    ->weight(FontWeight::SemiBold),
-
-                TextColumn::make('students_count')
-                    ->label('Students')
-                    ->counts('students')
-                    ->alignCenter()
-                    ->badge()
-                    ->color('success'),
-
-                TextColumn::make('description')
-                    ->label('Description')
-                    ->limit(50)
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Split::make([
+                    ImageColumn::make('logo')
+                        ->circular()
+                        ->size(80)
+                        ->defaultImageUrl(function ($record) {
+                            return 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF';
+                        })
+                        ->grow(false),
+                    
+                    Stack::make([
+                        TextColumn::make('name')
+                            ->weight(FontWeight::Bold)
+                            ->size('lg')
+                            ->searchable()
+                            ->wrap(),
+                        
+                        TextColumn::make('user.name')
+                            ->label('Adviser')
+                            ->color('gray')
+                            ->prefix('Adviser: ')
+                            ->size('sm'),
+                        
+                        Split::make([
+                            TextColumn::make('year')
+                                ->badge()
+                                ->color('primary')
+                                ->formatStateUsing(fn ($state) => $state . '-' . ($state + 1))
+                                ->grow(false),
+                            
+                            TextColumn::make('students_count')
+                                ->counts('students')
+                                ->badge()
+                                ->color('success')
+                                ->suffix(' students')
+                                ->grow(false),
+                        ])->from('sm'),
+                    ])->space(1),
+                ])
+                ->from('md'),
             ])
             ->filters([
                 SelectFilter::make('department_id')
@@ -81,14 +76,18 @@ class OrganizationsTable
                     }),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                // Actions hidden as requested
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+            ->bulkActions([
+                // Removed bulk actions to eliminate checkboxes
             ])
-            ->defaultSort('created_at', 'desc');
+            ->searchable()
+            ->paginated([10, 25, 50, 100])
+            ->defaultSort('created_at', 'desc')
+            ->contentGrid([
+                'md' => 1,
+                'lg' => 2,
+                'xl' => 3,
+            ]);
     }
 }

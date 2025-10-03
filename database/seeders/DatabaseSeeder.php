@@ -13,17 +13,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles, permissions, and admin user
+        // Seed roles, permissions, departments and admin user
         $this->call([
             RolePermissionSeeder::class,
+            OrganizationSeeder::class,  
         ]);
 
-        // Create test users with roles
-        // User::factory(10)->create();
-
+        // Create single admin user
         User::factory()->create([
-            'name' => 'Test User',
+            'name' => 'Administrator',
             'email' => 'test@example.com',
-        ]);
+            'password' => bcrypt('password'),
+            'department_id' => null, // Admin has no department restriction
+        ])->assignRole('Admin');
     }
 }

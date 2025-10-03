@@ -18,23 +18,26 @@ class RolePermissionSeeder extends Seeder
     {
         // Create permissions
         $permissions = [
-            // User management
-            'view users',
-            'create users',
-            'edit users',
-            'delete users',
+            // Organization management  
+            'manage organizations',
+            'view organizations',
+            'create organizations',
+            'edit organizations',
+            'delete organizations',
             
-            // Role management
-            'view roles',
-            'create roles',
-            'edit roles',
-            'delete roles',
+            // Student management
+            'manage students',
+            'view students',
+            'create students',
+            'edit students',
+            'delete students',
             
-            // Permission management
-            'view permissions',
-            'create permissions',
-            'edit permissions',
-            'delete permissions',
+            // Evaluation management
+            'manage evaluations',
+            'view evaluations',
+            'create evaluations',
+            'edit evaluations',
+            'delete evaluations',
             
             // General admin permissions
             'access admin panel',
@@ -49,54 +52,30 @@ class RolePermissionSeeder extends Seeder
         }
 
         // Create roles
-        $superAdminRole = Role::firstOrCreate([
-            'name' => 'super-admin',
-            'guard_name' => 'web',
-        ]);
-
         $adminRole = Role::firstOrCreate([
-            'name' => 'admin', 
+            'name' => 'Admin', 
             'guard_name' => 'web',
         ]);
 
-        $userRole = Role::firstOrCreate([
-            'name' => 'user',
+        $adviserRole = Role::firstOrCreate([
+            'name' => 'Adviser',
             'guard_name' => 'web',
         ]);
 
         // Assign permissions to roles
-        // Super admin gets all permissions
-        $superAdminRole->syncPermissions(Permission::all());
+        // Admin gets all permissions
+        $adminRole->syncPermissions(Permission::all());
 
-        // Admin gets most permissions except deleting other admins
-        $adminRole->syncPermissions([
-            'view users',
-            'create users', 
-            'edit users',
-            'view roles',
-            'view permissions',
+        // Adviser gets limited permissions for core functionality
+        $adviserRole->syncPermissions([
+            'manage organizations',
+            'manage students', 
+            'manage evaluations',
             'access admin panel',
             'view dashboard',
         ]);
 
-        // Regular user gets basic permissions
-        $userRole->syncPermissions([
-            'view dashboard',
-        ]);
-
-        // Create default admin user
-        $adminUser = User::firstOrCreate([
-            'email' => 'admin@admin.com',
-        ], [
-            'name' => 'Super Administrator',
-            'password' => Hash::make('password'),
-            'email_verified_at' => now(),
-        ]);
-
-        // Assign super-admin role to admin user
-        $adminUser->assignRole($superAdminRole);
-
         $this->command->info('Roles and permissions seeded successfully!');
-        $this->command->info('Admin user created: admin@admin.com / password');
+        $this->command->info('Admin and Adviser roles created');
     }
 }

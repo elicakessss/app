@@ -30,6 +30,33 @@ class StudentResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Students';
 
+    public static function canAccess(): bool
+    {
+        // Allow access for admin role or users with manage-students permission
+        return auth()->user()?->hasRole('Admin') || 
+               auth()->user()?->can('manage students') ?? false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canEdit($record): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasRole('Admin') ?? false; // Only admin can delete
+    }
+
     /**
      * Configure the form schema for creating/editing students.
      */

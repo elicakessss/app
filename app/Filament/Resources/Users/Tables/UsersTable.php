@@ -22,6 +22,11 @@ class UsersTable
                     ->label('Email address')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('department.name')
+                    ->label('Department')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('No department assigned'),
                 TextColumn::make('roles.name')
                     ->label('Roles')
                     ->badge()
@@ -42,6 +47,11 @@ class UsersTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('department')
+                    ->relationship('department', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->label('Department'),
                 SelectFilter::make('roles')
                     ->relationship('roles', 'name')
                     ->searchable()

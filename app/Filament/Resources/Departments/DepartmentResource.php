@@ -32,6 +32,31 @@ class DepartmentResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('Admin') ?? false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canEdit($record): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canDelete($record): bool
+    {
+        return static::canAccess();
+    }
+
     public static function form(Schema $schema): Schema
     {
         return DepartmentForm::configure($schema);

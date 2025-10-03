@@ -13,6 +13,7 @@ class Organization extends Model
 
     protected $fillable = [
         'department_id',
+        'user_id',
         'name',
         'logo',
         'description',
@@ -22,6 +23,14 @@ class Organization extends Model
     protected $casts = [
         'year' => 'integer',
     ];
+
+    /**
+     * Get the user who created this organization.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Get the department that owns this organization.

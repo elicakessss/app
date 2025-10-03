@@ -30,6 +30,39 @@ class RoleResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Roles';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('Admin') ?? false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canCreate(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function canEdit($record): bool
+    {
+        // Prevent editing the Admin role to avoid lockouts
+        if ($record && $record->name === 'Admin') {
+            return false;
+        }
+        return static::canAccess();
+    }
+
+    public static function canDelete($record): bool
+    {
+        // Prevent deleting the Admin role to avoid lockouts
+        if ($record && $record->name === 'Admin') {
+            return false;
+        }
+        return static::canAccess();
+    }
+
     public static function form(Schema $schema): Schema
     {
         return RoleForm::configure($schema);

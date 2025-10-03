@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Schemas;
 
 use App\Models\Role;
+use App\Models\Department;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -18,6 +19,13 @@ class UserForm
             ->components([
                 Section::make('User Information')
                     ->schema([
+                        Select::make('department_id')
+                            ->label('Department')
+                            ->relationship('department', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('Select department')
+                            ->helperText('User will only see organizations from this department'),
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
