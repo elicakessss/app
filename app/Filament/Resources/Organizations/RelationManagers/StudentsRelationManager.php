@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Organizations\RelationManagers;
 
 use App\Models\Student;
+use App\Models\Evaluation;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -10,85 +11,206 @@ use Filament\Schemas\Schema;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
+/**
+ * Students Relation Manager
+ * 
+ * Manages student memberships within organizations and provides evaluation actions.
+ */
 class StudentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'students';
-
     protected static ?string $recordTitleAttribute = 'name';
+
+    // ========================================
+    // FORM CONFIGURATION
+    // ========================================
 
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                TextInput::make('position')
-                    ->label('Position')
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('e.g., Team Leader, Secretary, Member'),
-            ]);
+        return $schema->components([
+            TextInput::make('position')
+                ->label('Position')
+                ->required()
+                ->maxLength(255)
+                ->placeholder('e.g., Team Leader, Secretary, Member'),
+        ]);
     }
+
+    // ========================================
+    // TABLE CONFIGURATION
+    // ========================================
 
     public function table(Table $table): Table
     {
         return $table
-            ->columns([
-                TextColumn::make('name')
-                    ->label('Student Name')
-                    ->searchable()
-                    ->sortable(),
+            ->columns($this->getTableColumns())
+            ->headerActions($this->getHeaderActions())
+            ->actions($this->getTableActions())
+            ->filters([])
+            ->bulkActions([]);
+    }
 
-                TextColumn::make('email')
-                    ->label('Email')
-                    ->searchable()
-                    ->toggleable(),
+    /**
+     * Define table columns
+     */
+    protected function getTableColumns(): array
+    {
+        return [
+            TextColumn::make('name')
+                ->label('Student Name')
+                ->searchable()
+                ->sortable(),
 
-                TextColumn::make('pivot.position')
+            TextColumn::make('email')
+                ->label('Email')
+                ->searchable()
+                ->toggleable(),
+
+            TextColumn::make('pivot.position')
+                ->label('Position')
+                ->placeholder('No position assigned'),
+
+            TextColumn::make('pivot.created_at')
+                ->label('Added')
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ];
+    }
+
+    /**
+     * Define header actions
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            AttachAction::make()
+                ->label('Add Student')
+                ->form($this->getAttachForm())
+                ->preloadRecordSelect(),
+        ];
+    }
+
+    /**
+     * Define row actions
+     */
+    protected function getTableActions(): array
+    {
+        return [
+            $this->getEvaluationActionGroup(),
+            $this->getEditAction(),
+            $this->getDetachAction(),
+        ];
+    }
+
+    // ========================================
+    // ACTION DEFINITIONS
+    // ========================================
+
+    /**
+     * Create evaluation action group with all evaluator types
+     */
+    protected function getEvaluationActionGroup(): ActionGroup
+    {
+        return ActionGroup::make([
+            $this->createEvaluationAction('adviser', '🎓 Adviser', 'success'),
+            $this->createEvaluationAction('peer', '👥 Peer', 'info'),
+            $this->createEvaluationAction('self', '👤 Self', 'warning'),
+        ])
+        ->label('Evaluate')
+        ->button();
+    }
+
+    /**
+     * Create individual evaluation action
+     */
+    protected function createEvaluationAction(string $type, string $label, string $color): Action
+    {
+        return Action::make("{$type}_evaluation")
+            ->label($label)
+            ->color($color)
+            ->url(fn ($record) => $this->getEvaluationUrl($record->id, $type));
+    }
+
+    /**
+     * Generate evaluation URL for specific student and type
+     */
+    protected function getEvaluationUrl(int $studentId, string $evaluatorType): string
+    {
+        return route('filament.admin.resources.organizations.evaluate-student', [
+            'organization' => $this->ownerRecord->id,
+            'student' => $studentId,
+            'type' => $evaluatorType,
+        ]);
+    }
+
+    /**
+     * Create edit action for student position
+     */
+    protected function getEditAction(): EditAction
+    {
+        return EditAction::make()
+            ->form([
+                TextInput::make('position')
                     ->label('Position')
-                    ->placeholder('No position assigned'),
-
-                TextColumn::make('pivot.created_at')
-                    ->label('Added')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
-            ])
-            ->headerActions([
-                AttachAction::make()
-                    ->label('Add Student')
-                    ->form(fn (AttachAction $action): array => [
-                        Select::make('recordId')
-                            ->label('Student')
-                            ->options(Student::all()->pluck('name', 'id'))
-                            ->searchable()
-                            ->required(),
-                        
-                        TextInput::make('position')
-                            ->label('Position')
-                            ->required()
-                            ->maxLength(255)
-                            ->placeholder('e.g., Team Leader, Secretary, Member'),
-                    ])
-                    ->preloadRecordSelect(),
-            ])
-            ->actions([
-                EditAction::make()
-                    ->form([
-                        TextInput::make('position')
-                            ->label('Position')
-                            ->required()
-                            ->maxLength(255),
-                    ]),
-                DetachAction::make()
-                    ->label('Remove'),
-            ])
-            ->bulkActions([
-                //
+                    ->required()
+                    ->maxLength(255),
             ]);
+    }
+
+    /**
+     * Create detach action to remove student
+     */
+    protected function getDetachAction(): DetachAction
+    {
+        return DetachAction::make()->label('Remove');
+    }
+
+    // ========================================
+    // FORM HELPERS
+    // ========================================
+
+    /**
+     * Get form fields for attaching students
+     */
+    protected function getAttachForm(): array
+    {
+        return [
+            Select::make('recordId')
+                ->label('Student')
+                ->options(Student::all()->pluck('name', 'id'))
+                ->searchable()
+                ->required(),
+            
+            TextInput::make('position')
+                ->label('Position')
+                ->required()
+                ->maxLength(255)
+                ->placeholder('e.g., Team Leader, Secretary, Member'),
+        ];
+    }
+
+    // ========================================
+    // UTILITY METHODS
+    // ========================================
+
+    /**
+     * Check evaluation completion status for a student
+     * 
+     * @deprecated Currently unused but kept for potential future use
+     */
+    protected function getEvaluationStatus(int $studentId, string $evaluatorType): ?string
+    {
+        $evaluation = Evaluation::where('organization_id', $this->ownerRecord->id)
+            ->where('student_id', $studentId)
+            ->where('evaluator_type', $evaluatorType)
+            ->first();
+
+        return $evaluation ? 'Done' : null;
     }
 }

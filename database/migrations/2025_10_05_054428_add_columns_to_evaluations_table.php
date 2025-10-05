@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('evaluations', function (Blueprint $table) {
-            $table->id();
+        Schema::table('evaluations', function (Blueprint $table) {
             $table->foreignId('organization_id')->constrained()->onDelete('cascade');
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->enum('evaluator_type', ['adviser', 'peer', 'self', 'length_of_service']);
             $table->json('answers'); // Store all question answers
             $table->decimal('evaluator_score', 5, 3); // The computed score for this evaluator
-            $table->timestamps();
             
             // Ensure only one evaluation per student per evaluator type per organization
             $table->unique(['organization_id', 'student_id', 'evaluator_type']);
@@ -30,6 +28,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('evaluations');
+        Schema::table('evaluations', function (Blueprint $table) {
+            $table->dropForeign(['organization_id']);
+            $table->dropForeign(['student_id']);
+            $table->dropUnique(['organization_id', 'student_id', 'evaluator_type']);
+            $table->dropColumn(['organization_id', 'student_id', 'evaluator_type', 'answers', 'evaluator_score']);
+        });
     }
 };

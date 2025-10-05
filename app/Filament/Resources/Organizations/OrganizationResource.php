@@ -6,6 +6,7 @@ use App\Filament\Resources\Organizations\Pages\CreateOrganization;
 use App\Filament\Resources\Organizations\Pages\EditOrganization;
 use App\Filament\Resources\Organizations\Pages\ListOrganizations;
 use App\Filament\Resources\Organizations\Pages\ViewOrganization;
+use App\Filament\Resources\Organizations\Pages;
 use App\Filament\Resources\Organizations\RelationManagers;
 use App\Filament\Resources\Organizations\Schemas\OrganizationForm;
 use App\Filament\Resources\Organizations\Tables\OrganizationsTable;
@@ -96,6 +97,7 @@ class OrganizationResource extends Resource
             'create' => CreateOrganization::route('/create'),
             'view' => ViewOrganization::route('/{record}'),
             'edit' => EditOrganization::route('/{record}/edit'),
+            'evaluate-student' => Pages\EvaluateStudent::route('/{organization}/evaluate/{student}/{type}'),
         ];
     }
 
