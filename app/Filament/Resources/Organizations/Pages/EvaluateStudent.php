@@ -8,8 +8,10 @@ use App\Models\Organization;
 use App\Models\Student;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Group;
+use Filament\Schemas\Schema;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
@@ -20,8 +22,10 @@ use Illuminate\Contracts\Support\Htmlable;
  * Provides dynamic evaluation forms based on evaluator type (adviser, peer, self).
  * Organizes questions by domain and strand for better user experience.
  */
-class EvaluateStudent extends Page
+class EvaluateStudent extends Page implements HasForms
 {
+    use InteractsWithForms;
+    
     protected static string $resource = OrganizationResource::class;
     protected string $view = 'filament.resources.organizations.pages.evaluate-student';
 
@@ -33,10 +37,10 @@ class EvaluateStudent extends Page
     public Student $student;
     public string $type;
     public ?Evaluation $evaluation = null;
-    public array $data = [];
+    public ?array $data = [];
 
     // ========================================
-    // DOMAIN MAPPINGS
+    // CONSTANTS
     // ========================================
 
     /** Domain number to title mapping */
@@ -58,21 +62,14 @@ class EvaluateStudent extends Page
     // LIFECYCLE METHODS
     // ========================================
 
-    public function mount(): void
+    public function mount(Organization $organization, Student $student, string $type): void
     {
-        $this->loadRouteParameters();
+        $this->organization = $organization;
+        $this->student = $student;
+        $this->type = $type;
+
         $this->loadExistingEvaluation();
         $this->initializeForm();
-    }
-
-    /**
-     * Load organization, student, and evaluation type from route
-     */
-    protected function loadRouteParameters(): void
-    {
-        $this->organization = Organization::findOrFail(request()->route('organization'));
-        $this->student = Student::findOrFail(request()->route('student'));
-        $this->type = request()->route('type');
     }
 
     /**
@@ -95,7 +92,7 @@ class EvaluateStudent extends Page
      */
     protected function initializeForm(): void
     {
-        $this->form->fill($this->data);
+        $this->fill($this->data);
     }
 
     // ========================================
@@ -117,11 +114,9 @@ class EvaluateStudent extends Page
     // FORM BUILDING
     // ========================================
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema($this->buildFormSchema())
-            ->statePath('data');
+        return $schema->schema($this->buildFormSchema());
     }
 
     /**
@@ -137,10 +132,7 @@ class EvaluateStudent extends Page
             $domainComponents = $this->buildDomainComponents($strands);
             
             if (!empty($domainComponents)) {
-                $components[] = Section::make($domainName)
-                    ->schema($domainComponents)
-                    ->collapsible()
-                    ->collapsed(false);
+                $components = array_merge($components, $domainComponents);
             }
         }
 
@@ -158,10 +150,7 @@ class EvaluateStudent extends Page
             $strandComponents = $this->buildStrandComponents($strandQuestions);
             
             if (!empty($strandComponents)) {
-                $domainComponents[] = Section::make($strandName)
-                    ->schema($strandComponents)
-                    ->collapsible()
-                    ->collapsed(false);
+                $domainComponents = array_merge($domainComponents, $strandComponents);
             }
         }
 
@@ -237,7 +226,19 @@ class EvaluateStudent extends Page
      */
     public function save(): void
     {
-        $data = $this->form->getState();
+        $data = $this->data;
+
+        // Validate all questions have answers
+        $questions = Evaluation::getQuestionsForEvaluator($this->type);
+        foreach (array_keys($questions) as $questionKey) {
+            if (!isset($data[$questionKey]) || $data[$questionKey] === '' || $data[$questionKey] === null) {
+                Notification::make()
+                    ->title('Please answer all questions before submitting.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+        }
 
         if ($this->evaluation) {
             $this->updateExistingEvaluation($data);

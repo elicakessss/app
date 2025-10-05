@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Organizations\RelationManagers;
 
 use App\Models\Student;
 use App\Models\Evaluation;
+use App\Filament\Resources\Organizations\OrganizationResource;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -75,6 +76,31 @@ class StudentsRelationManager extends RelationManager
                 ->label('Position')
                 ->placeholder('No position assigned'),
 
+            TextColumn::make('evaluation_status')
+                ->label('Evaluation Status')
+                ->badge()
+                ->getStateUsing(function ($record) {
+                    $adviser = $this->getEvaluationStatus($record->id, 'adviser');
+                    $peer = $this->getEvaluationStatus($record->id, 'peer');
+                    $self = $this->getEvaluationStatus($record->id, 'self');
+                    
+                    $completed = array_filter([$adviser, $peer, $self]);
+                    $total = 3;
+                    
+                    if (count($completed) === $total) {
+                        return 'Complete';
+                    } elseif (count($completed) > 0) {
+                        return count($completed) . '/' . $total . ' Done';
+                    } else {
+                        return 'Pending';
+                    }
+                })
+                ->color(fn (string $state): string => match ($state) {
+                    'Complete' => 'success',
+                    'Pending' => 'danger',
+                    default => 'warning',
+                }),
+
             TextColumn::make('pivot.created_at')
                 ->label('Added')
                 ->dateTime()
@@ -142,7 +168,7 @@ class StudentsRelationManager extends RelationManager
      */
     protected function getEvaluationUrl(int $studentId, string $evaluatorType): string
     {
-        return route('filament.admin.resources.organizations.evaluate-student', [
+        return OrganizationResource::getUrl('evaluate-student', [
             'organization' => $this->ownerRecord->id,
             'student' => $studentId,
             'type' => $evaluatorType,
@@ -201,16 +227,14 @@ class StudentsRelationManager extends RelationManager
 
     /**
      * Check evaluation completion status for a student
-     * 
-     * @deprecated Currently unused but kept for potential future use
      */
-    protected function getEvaluationStatus(int $studentId, string $evaluatorType): ?string
+    protected function getEvaluationStatus(int $studentId, string $evaluatorType): bool
     {
         $evaluation = Evaluation::where('organization_id', $this->ownerRecord->id)
             ->where('student_id', $studentId)
             ->where('evaluator_type', $evaluatorType)
             ->first();
 
-        return $evaluation ? 'Done' : null;
+        return $evaluation !== null;
     }
 }
