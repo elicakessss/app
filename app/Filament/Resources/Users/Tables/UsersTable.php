@@ -6,6 +6,9 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Stack;
+use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
@@ -15,36 +18,40 @@ class UsersTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('email')
-                    ->label('Email address')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('department.name')
-                    ->label('Department')
-                    ->searchable()
-                    ->sortable()
-                    ->placeholder('No department assigned'),
-                TextColumn::make('roles.name')
-                    ->label('Roles')
-                    ->badge()
-                    ->separator(',')
-                    ->color('info'),
-                TextColumn::make('email_verified_at')
-                    ->label('Verified')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Split::make([
+                    ImageColumn::make('avatar')
+                        ->circular()
+                        ->size(50)
+                        ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF')
+                        ->grow(false),
+                    
+                    Stack::make([
+                        TextColumn::make('name')
+                            ->weight('medium')
+                            ->searchable(),
+                        
+                        TextColumn::make('department.name')
+                            ->placeholder('No department assigned')
+                            ->color('gray')
+                            ->size('sm'),
+                    ]),
+                    
+                    TextColumn::make('email')
+                        ->searchable()
+                        ->copyable()
+                        ->icon('heroicon-o-envelope')
+                        ->label('Email'),
+                        
+                    TextColumn::make('roles.name')
+                        ->badge()
+                        ->separator(',')
+                        ->color('info')
+                        ->label('Roles'),
+                        
+                    TextColumn::make('created_at')
+                        ->dateTime()
+                        ->label('Joined'),
+                ]),
             ])
             ->filters([
                 SelectFilter::make('department')
@@ -66,6 +73,7 @@ class UsersTable
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->emptyStateHeading('No users yet')
+            ->emptyStateDescription('Users will appear here once they are created.');
     }
 }

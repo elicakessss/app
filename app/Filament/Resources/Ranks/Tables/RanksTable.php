@@ -2,9 +2,13 @@
 
 namespace App\Filament\Resources\Ranks\Tables;
 
+use App\Models\Organization;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Stack;
+use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
@@ -14,64 +18,70 @@ class RanksTable
     {
         return $table
             ->columns([
-                TextColumn::make('student.name')
-                    ->label('Student')
-                    ->searchable()
-                    ->sortable(),
+                Split::make([
+                    ImageColumn::make('student.avatar')
+                        ->circular()
+                        ->size(50)
+                        ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->student->name) . '&color=7F9CF5&background=EBF4FF')
+                        ->grow(false),
                     
-                TextColumn::make('organization.name')
-                    ->label('Organization')
-                    ->searchable()
-                    ->sortable(),
+                    Stack::make([
+                        TextColumn::make('student.name')
+                            ->weight('medium')
+                            ->searchable(),
+                        
+                        TextColumn::make('position')
+                            ->getStateUsing(function ($record) {
+                                $pivot = $record->student->organizations()
+                                    ->where('organization_id', $record->organization_id)
+                                    ->first()?->pivot;
+                                return $pivot?->position ?? 'Member';
+                            })
+                            ->color('gray')
+                            ->size('sm'),
+                    ]),
                     
-                TextColumn::make('organization.year')
-                    ->label('Academic Year')
-                    ->sortable(),
-                    
-                TextColumn::make('student.organizations')
-                    ->label('Position')
-                    ->formatStateUsing(function ($record) {
-                        $pivot = $record->student->organizations
-                            ->where('id', $record->organization_id)
-                            ->first()?->pivot;
-                        return $pivot?->position ?? 'N/A';
-                    }),
-                    
-                TextColumn::make('final_score')
-                    ->label('Final Score')
-                    ->numeric(decimalPlaces: 3)
-                    ->sortable()
-                    ->placeholder('Pending'),
-                    
-                BadgeColumn::make('rank')
-                    ->label('Rank')
-                    ->colors([
-                        'warning' => 'gold',
-                        'gray' => 'silver', 
-                        'orange' => 'bronze',
-                        'danger' => 'none',
-                    ])
-                    ->formatStateUsing(fn (?string $state): string => match($state) {
-                        'gold' => 'Gold',
-                        'silver' => 'Silver',
-                        'bronze' => 'Bronze',
-                        'none' => 'None',
-                        default => 'Pending'
-                    }),
-                    
-                BadgeColumn::make('status')
-                    ->label('Status')
-                    ->colors([
-                        'success' => 'finalized',
-                        'warning' => 'pending',
-                    ])
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state)),
-                    
-                TextColumn::make('updated_at')
-                    ->label('Last Updated')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    Stack::make([
+                        TextColumn::make('organization.name')
+                            ->searchable(),
+                        
+                        TextColumn::make('organization.year')
+                            ->formatStateUsing(function ($state) {
+                                if (!$state) return 'N/A';
+                                $nextYear = $state + 1;
+                                return "{$state}-{$nextYear}";
+                            }),
+                    ]),
+                            
+                    TextColumn::make('final_score')
+                        ->numeric(decimalPlaces: 3)
+                        ->placeholder('Pending')
+                        ->label('Final Score'),
+                        
+                    BadgeColumn::make('rank')
+                        ->colors([
+                            'warning' => 'gold',
+                            'gray' => 'silver', 
+                            'orange' => 'bronze',
+                            'danger' => 'none',
+                        ])
+                        ->formatStateUsing(fn (?string $state): string => match($state) {
+                            'gold' => 'Gold',
+                            'silver' => 'Silver',
+                            'bronze' => 'Bronze',
+                            'none' => 'None',
+                            default => 'Pending'
+                        })
+                        ->label('Rank'),
+                        
+                    BadgeColumn::make('status')
+                        ->colors([
+                            'success' => 'finalized',
+                            'warning' => 'pending',
+                        ])
+                        ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                        ->label('Status'),
+                ]),
             ])
             ->filters([
                 SelectFilter::make('rank')
@@ -94,24 +104,19 @@ class RanksTable
                     
                 SelectFilter::make('year')
                     ->options(function () {
-                        return \App\Models\Organization::distinct('year')
+                        return Organization::distinct('year')
                             ->orderBy('year', 'desc')
                             ->pluck('year', 'year')
                             ->toArray();
                     })
                     ->query(function ($query, $data) {
                         if ($data['value']) {
-                            return $query->whereHas('organization', fn ($q) => 
-                                $q->where('year', $data['value'])
-                            );
+                            return $query->whereHas('organization', function ($q) use ($data) {
+                                $q->where('year', $data['value']);
+                            });
                         }
                     }),
             ])
-            ->recordActions([
-                ViewAction::make()
-                    ->label('View Breakdown'),
-            ])
-            ->defaultSort('final_score', 'desc')
             ->emptyStateHeading('No rankings yet')
             ->emptyStateDescription('Rankings will appear here once evaluations are completed.');
     }

@@ -19,7 +19,6 @@ class DepartmentsTable
                 TextColumn::make('name')
                     ->label('Department Name')
                     ->searchable()
-                    ->sortable()
                     ->weight(FontWeight::SemiBold),
 
                 TextColumn::make('abbreviation')
@@ -35,36 +34,19 @@ class DepartmentsTable
                     ->badge()
                     ->color('primary'),
 
-                TextColumn::make('users_count')
-                    ->label('Users')
-                    ->counts('users')
-                    ->alignCenter()
-                    ->badge()
-                    ->color('success'),
-
-                TextColumn::make('description')
-                    ->label('Description')
-                    ->limit(50)
-                    ->toggleable(),
-
                 TextColumn::make('created_at')
                     ->label('Created')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->dateTime(),
             ])
             ->filters([
                 //
-            ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('name', 'asc');
+            ->emptyStateHeading('No departments yet')
+            ->emptyStateDescription('Departments will appear here once they are created.');
     }
 }

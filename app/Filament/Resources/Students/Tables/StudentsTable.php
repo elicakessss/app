@@ -6,6 +6,9 @@ use App\Models\Student;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Stack;
+use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Table;
 
 /**
@@ -20,30 +23,35 @@ class StudentsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable()
-                    ->sortable()
-                    ->label('Full Name')
-                    ->weight('semibold'),
+                Split::make([
+                    ImageColumn::make('avatar')
+                        ->circular()
+                        ->size(50)
+                        ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF')
+                        ->grow(false),
+                    
+                    Stack::make([
+                        TextColumn::make('name')
+                            ->weight('medium')
+                            ->searchable(),
+                        
+                        TextColumn::make('school_number')
+                            ->getStateUsing(fn ($record) => $record->school_number ?? 'ID: ' . $record->id)
+                            ->color('gray')
+                            ->size('sm'),
+                    ]),
+                    
+                    TextColumn::make('email')
+                        ->searchable()
+                        ->copyable()
+                        ->icon('heroicon-o-envelope')
+                        ->label('Email'),
+                        
+                    TextColumn::make('created_at')
+                        ->dateTime()
+                        ->label('Registered'),
 
-                TextColumn::make('email')
-                    ->searchable()
-                    ->sortable()
-                    ->copyable()
-                    ->icon('heroicon-o-envelope')
-                    ->label('Email'),
-
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->label('Registered')
-                    ->toggleable(),
-
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->label('Last Updated')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                ]),
             ])
             ->filters([
                 //
@@ -56,6 +64,7 @@ class StudentsTable
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->emptyStateHeading('No students yet')
+            ->emptyStateDescription('Students will appear here once they are registered.');
     }
 }
