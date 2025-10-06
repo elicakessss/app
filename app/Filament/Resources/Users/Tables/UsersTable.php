@@ -30,11 +30,16 @@ class UsersTable
                             ->weight('medium')
                             ->searchable(),
                         
-                        TextColumn::make('department.name')
-                            ->placeholder('No department assigned')
+                        TextColumn::make('school_number')
+                            ->searchable()
                             ->color('gray')
                             ->size('sm'),
-                    ]),
+                    ])->space(1),
+                    
+                    TextColumn::make('department.name')
+                        ->searchable()
+                        ->placeholder('No department assigned')
+                        ->label('Department'),
                     
                     TextColumn::make('email')
                         ->searchable()

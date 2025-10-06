@@ -11,10 +11,17 @@
             </p>
         </div>
 
-        <!-- Name -->
+        <!-- School Number -->
         <div>
+            <x-input-label for="school_number" :value="__('School Number')" />
+            <x-text-input id="school_number" class="block mt-1 w-full" type="text" name="school_number" :value="old('school_number')" required autofocus autocomplete="school_number" placeholder="e.g., 2024-001234" />
+            <x-input-error :messages="$errors->get('school_number')" class="mt-2" />
+        </div>
+
+        <!-- Name -->
+        <div class="mt-4">
             <x-input-label for="name" :value="__('Full Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 

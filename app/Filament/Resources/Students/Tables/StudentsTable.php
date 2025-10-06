@@ -36,7 +36,7 @@ class StudentsTable
                             ->searchable(),
                         
                         TextColumn::make('school_number')
-                            ->getStateUsing(fn ($record) => $record->school_number ?? 'ID: ' . $record->id)
+                            ->searchable()
                             ->color('gray')
                             ->size('sm'),
                     ]),

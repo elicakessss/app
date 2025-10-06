@@ -18,6 +18,14 @@ class StudentForm
     {
         return $schema
             ->components([
+                TextInput::make('school_number')
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(20)
+                    ->label('School Number')
+                    ->placeholder('e.g., 2024-001234')
+                    ->helperText('Unique identifier for the student'),
+                    
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255)

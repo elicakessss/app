@@ -30,12 +30,14 @@ class StudentRegistrationController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
+            'school_number' => ['required', 'string', 'max:20', 'unique:'.Student::class],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.Student::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $student = Student::create([
+            'school_number' => $request->school_number,
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),

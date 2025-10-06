@@ -26,6 +26,13 @@ class UserForm
                             ->preload()
                             ->placeholder('Select department')
                             ->helperText('User will only see organizations from this department'),
+                        TextInput::make('school_number')
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->maxLength(20)
+                            ->label('School Number')
+                            ->placeholder('e.g., 2024-001234')
+                            ->helperText('Unique identifier for the user'),
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
