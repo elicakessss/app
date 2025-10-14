@@ -40,19 +40,20 @@ class StudentForm
                         
                 TextInput::make('password')
                     ->password()
-                    ->required()
+                    ->required(fn (string $operation): bool => $operation === 'create')
                     ->minLength(8)
-                    ->dehydrateStateUsing(fn (string $state): string => Hash::make($state))
+                    ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? Hash::make($state) : null)
                     ->dehydrated(fn (?string $state): bool => filled($state))
                     ->label('Password')
-                    ->helperText('Minimum 8 characters'),
+                    ->helperText(fn (string $operation): string => $operation === 'create' ? 'Minimum 8 characters' : 'Leave blank to keep current password'),
                         
                 TextInput::make('password_confirmation')
                     ->password()
-                    ->required()
+                    ->required(fn (string $operation): bool => $operation === 'create')
                     ->same('password')
                     ->dehydrated(false)
-                    ->label('Confirm Password'),
+                    ->label('Confirm Password')
+                    ->visible(fn (string $operation): bool => $operation === 'create' || filled(request()->input('data.password'))),
             ]);
     }
 }

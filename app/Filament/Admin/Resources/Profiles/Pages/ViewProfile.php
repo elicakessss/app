@@ -13,7 +13,7 @@ class ViewProfile extends ViewRecord
 
     public function getTitle(): string|Htmlable
     {
-        return 'My Profile';
+        return 'Profile';
     }
 
     public function getSubheading(): string|Htmlable|null

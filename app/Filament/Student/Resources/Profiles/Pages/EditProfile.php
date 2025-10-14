@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Profiles\Pages;
+namespace App\Filament\Student\Resources\Profiles\Pages;
 
-use App\Filament\Admin\Resources\Profiles\ProfileResource;
-use Filament\Actions\DeleteAction;
+use App\Filament\Student\Resources\Profiles\ProfileResource;
 use Filament\Resources\Pages\EditRecord;
 
 class EditProfile extends EditRecord
@@ -15,7 +14,7 @@ class EditProfile extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            // No delete action for profile - users shouldn't delete their accounts
+            // No delete action for profile - students shouldn't delete their accounts
         ];
     }
 
