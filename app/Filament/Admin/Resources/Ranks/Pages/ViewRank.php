@@ -12,7 +12,7 @@ class ViewRank extends ViewRecord
     
     public function getView(): string
     {
-        return 'filament.admin.resources.ranks.pages.view-rank';
+        return 'filament.admin.resources.ranks.pages.RankReport';
     }
 
     protected function getViewData(): array
@@ -25,11 +25,52 @@ class ViewRank extends ViewRecord
             ->get()
             ->keyBy('evaluator_type');
 
+        $questions = Evaluation::getAllQuestions();
+        $groupedQuestions = $this->groupQuestions($questions);
+
         return [
             'record' => $record,
             'evaluations' => $evaluations,
-            'questions' => Evaluation::getAllQuestions(),
+            'questions' => $questions,
+            'groupedQuestions' => $groupedQuestions,
         ];
+    }
+
+    /**
+     * Group questions by domain and strand for organized display
+     */
+    public function groupQuestions(array $questions): array
+    {
+        if (empty($questions)) {
+            return [];
+        }
+
+        $grouped = [];
+        $domainTitles = [
+            '1' => 'Domain 1: Paulinian Leadership as Social Responsibility',
+            '2' => 'Domain 2: Paulinian Leadership as a Life of Service',
+            '3' => 'Domain 3: Paulinian Leader as Leading by Example',
+        ];
+
+        foreach ($questions as $key => $text) {
+            if ($key === 'length_of_service') {
+                $grouped['Length of Service']['Service Duration'][$key] = $text;
+                continue;
+            }
+
+            $parts = explode('_', $key);
+            if (count($parts) >= 4) {
+                $domainNum = $parts[1];
+                $strandNum = $parts[3];
+
+                $domainName = $domainTitles[$domainNum] ?? "Domain {$domainNum}";
+                $strandName = "Strand {$strandNum}";
+
+                $grouped[$domainName][$strandName][$key] = $text;
+            }
+        }
+
+        return $grouped;
     }
 
     protected function getHeaderActions(): array

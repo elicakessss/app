@@ -8,6 +8,11 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
+/**
+ * Roles Table Configuration
+ * 
+ * Displays roles with their permissions count, users count, and guard information
+ */
 class RolesTable
 {
     public static function configure(Table $table): Table
@@ -39,9 +44,6 @@ class RolesTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
             ])
             ->recordActions([
                 EditAction::make(),

@@ -67,13 +67,6 @@ class DepartmentResource extends Resource
         return DepartmentsTable::configure($table);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
     public static function getPages(): array
     {
         return [

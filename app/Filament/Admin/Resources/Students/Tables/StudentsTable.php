@@ -13,11 +13,12 @@ use Filament\Tables\Table;
 
 /**
  * Students table configuration for Filament admin panel.
+ * Displays student information with search and bulk actions.
  */
 class StudentsTable
 {
     /**
-     * Configure the students table.
+     * Configure the students table with proper columns and actions.
      */
     public static function configure(Table $table): Table
     {

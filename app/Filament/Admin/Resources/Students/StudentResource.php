@@ -74,14 +74,6 @@ class StudentResource extends Resource
     }
 
     /**
-     * Get the relations that can be eager loaded.
-     */
-    public static function getRelations(): array
-    {
-        return [];
-    }
-
-    /**
      * Get the pages available for this resource.
      */
     public static function getPages(): array

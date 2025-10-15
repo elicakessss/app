@@ -8,11 +8,12 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * Student form schema for Filament admin panel.
+ * Handles student creation and editing with proper validation.
  */
 class StudentForm
 {
     /**
-     * Configure the student form schema.
+     * Configure the student form schema with validation and security.
      */
     public static function configure(Schema $schema): Schema
     {

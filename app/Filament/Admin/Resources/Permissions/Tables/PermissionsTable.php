@@ -9,6 +9,11 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
+/**
+ * Permissions Table Configuration
+ * 
+ * Displays permissions with their associated roles count and guard information
+ */
 class PermissionsTable
 {
     public static function configure(Table $table): Table

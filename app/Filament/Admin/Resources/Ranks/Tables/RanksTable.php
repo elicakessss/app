@@ -12,6 +12,10 @@ use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
+/**
+ * Ranks table configuration for Filament admin panel.
+ * Displays student rankings with evaluation scores and filters.
+ */
 class RanksTable
 {
     public static function configure(Table $table): Table

@@ -7,8 +7,6 @@ use App\Models\Evaluation;
 use App\Models\Organization;
 use App\Models\Student;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Group;
 use Filament\Schemas\Schema;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -27,20 +25,13 @@ class EvaluateStudent extends Page implements HasForms
     use InteractsWithForms;
     
     protected static string $resource = OrganizationResource::class;
-
-    // ========================================
-    // PROPERTIES
-    // ========================================
+    protected string $view = 'filament.admin.resources.organizations.pages.EvaluationSheet';
 
     public Organization $organization;
     public Student $student;
     public string $type;
     public ?Evaluation $evaluation = null;
-    public ?array $data = [];
-
-    // ========================================
-    // CONSTANTS
-    // ========================================
+    public array $data = [];
 
     /** Domain number to title mapping */
     private const DOMAIN_TITLES = [
@@ -49,26 +40,12 @@ class EvaluateStudent extends Page implements HasForms
         '3' => 'Domain 3: Paulinian Leader as Leading by Example',
     ];
 
-    /** Score options for evaluation questions */
-    private const SCORE_OPTIONS = [
-        3 => 'Excellent (3)',
-        2 => 'Very Good (2)',
-        1 => 'Good (1)',
-        0 => 'Needs Improvement (0)',
-    ];
-
-    // ========================================
-    // LIFECYCLE METHODS
-    // ========================================
-
     public function mount(Organization $organization, Student $student, string $type): void
     {
         $this->organization = $organization;
         $this->student = $student;
         $this->type = $type;
-
         $this->loadExistingEvaluation();
-        $this->initializeForm();
     }
 
     /**
@@ -76,27 +53,16 @@ class EvaluateStudent extends Page implements HasForms
      */
     protected function loadExistingEvaluation(): void
     {
-        $this->evaluation = Evaluation::where('organization_id', $this->organization->id)
-            ->where('student_id', $this->student->id)
-            ->where('evaluator_type', $this->type)
-            ->first();
+        $this->evaluation = Evaluation::where([
+            'organization_id' => $this->organization->id,
+            'student_id' => $this->student->id,
+            'evaluator_type' => $this->type,
+        ])->first();
 
         if ($this->evaluation) {
             $this->data = $this->evaluation->answers ?? [];
         }
     }
-
-    /**
-     * Initialize form with existing data
-     */
-    protected function initializeForm(): void
-    {
-        $this->fill($this->data);
-    }
-
-    // ========================================
-    // PAGE METADATA
-    // ========================================
 
     public function getTitle(): string|Htmlable
     {
@@ -109,81 +75,20 @@ class EvaluateStudent extends Page implements HasForms
         return "Organization: {$this->organization->name}";
     }
 
-    // ========================================
-    // FORM BUILDING
-    // ========================================
-
     public function form(Schema $schema): Schema
     {
-        return $schema->schema($this->buildFormSchema());
+        return $schema->components([]);
     }
-
-    /**
-     * Build the complete form schema with organized questions
-     */
-    protected function buildFormSchema(): array
-    {
-        $questions = Evaluation::getQuestionsForEvaluator($this->type);
-        $grouped = $this->groupQuestions($questions);
-        $components = [];
-
-        foreach ($grouped as $domainName => $strands) {
-            $domainComponents = $this->buildDomainComponents($strands);
-            
-            if (!empty($domainComponents)) {
-                $components = array_merge($components, $domainComponents);
-            }
-        }
-
-        return $components;
-    }
-
-    /**
-     * Build components for all strands within a domain
-     */
-    protected function buildDomainComponents(array $strands): array
-    {
-        $domainComponents = [];
-
-        foreach ($strands as $strandName => $strandQuestions) {
-            $strandComponents = $this->buildStrandComponents($strandQuestions);
-            
-            if (!empty($strandComponents)) {
-                $domainComponents = array_merge($domainComponents, $strandComponents);
-            }
-        }
-
-        return $domainComponents;
-    }
-
-    /**
-     * Build radio components for all questions within a strand
-     */
-    protected function buildStrandComponents(array $strandQuestions): array
-    {
-        $strandComponents = [];
-
-        foreach ($strandQuestions as $questionKey => $questionText) {
-            $strandComponents[] = Radio::make($questionKey)
-                ->label($questionText)
-                ->options(self::SCORE_OPTIONS)
-                ->required()
-                ->inline()
-                ->columnSpanFull();
-        }
-
-        return $strandComponents;
-    }
-
-    // ========================================
-    // QUESTION ORGANIZATION
-    // ========================================
 
     /**
      * Group questions by domain and strand for organized display
      */
-    protected function groupQuestions(array $questions): array
+    public function groupQuestions(array $questions): array
     {
+        if (empty($questions)) {
+            return [];
+        }
+
         $grouped = [];
 
         foreach ($questions as $key => $text) {
@@ -201,7 +106,7 @@ class EvaluateStudent extends Page implements HasForms
     /**
      * Categorize a single question into its domain and strand
      */
-    protected function categorizeQuestion(string $key, string $text, array &$grouped): void
+    public function categorizeQuestion(string $key, string $text, array &$grouped): void
     {
         $parts = explode('_', $key);
 
@@ -216,37 +121,43 @@ class EvaluateStudent extends Page implements HasForms
         }
     }
 
-    // ========================================
-    // ACTIONS
-    // ========================================
-
     /**
      * Save evaluation data to database
      */
     public function save(): void
     {
-        $data = $this->data;
-
-        // Validate all questions have answers
-        $questions = Evaluation::getQuestionsForEvaluator($this->type);
-        foreach (array_keys($questions) as $questionKey) {
-            if (!isset($data[$questionKey]) || $data[$questionKey] === '' || $data[$questionKey] === null) {
-                Notification::make()
-                    ->title('Please answer all questions before submitting.')
-                    ->danger()
-                    ->send();
-                return;
-            }
+        if (!$this->validateAnswers()) {
+            return;
         }
 
-        if ($this->evaluation) {
-            $this->updateExistingEvaluation($data);
-        } else {
-            $this->createNewEvaluation($data);
-        }
+        $this->evaluation
+            ? $this->updateExistingEvaluation($this->data)
+            : $this->createNewEvaluation($this->data);
 
         $this->sendSuccessNotification();
         $this->redirectToOrganization();
+    }
+
+    /**
+     * Validate that all required questions have answers
+     */
+    private function validateAnswers(): bool
+    {
+        $questions = Evaluation::getQuestionsForEvaluator($this->type);
+        $unansweredQuestions = array_filter(
+            array_keys($questions),
+            fn($key) => !isset($this->data[$key]) || $this->data[$key] === '' || $this->data[$key] === null
+        );
+
+        if (!empty($unansweredQuestions)) {
+            Notification::make()
+                ->title('Please answer all questions before submitting.')
+                ->danger()
+                ->send();
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -290,10 +201,6 @@ class EvaluateStudent extends Page implements HasForms
             'record' => $this->organization->id
         ]));
     }
-
-    // ========================================
-    // HEADER ACTIONS
-    // ========================================
 
     protected function getHeaderActions(): array
     {
