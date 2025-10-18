@@ -78,6 +78,7 @@ class OrganizationResource extends Resource
         return [
             'index' => ListOrganizations::route('/'),
             'self-evaluate' => SelfEvaluate::route('/{organization}/self-evaluate'),
+            'peer-evaluate' => \App\Filament\Student\Resources\Organizations\Pages\PeerEvaluate::route('/{organization}/{student}/peer-evaluate'),
         ];
     }
 

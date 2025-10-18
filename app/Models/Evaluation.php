@@ -10,10 +10,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * Evaluation Model
  * 
  * Stores evaluation scores for students by different evaluator types.
+
  * Automatically calculates evaluator scores and triggers rank recalculation.
  */
 class Evaluation extends Model
 {
+    use HasFactory;
+
+    /**
+     * Public method to get peer questions for students
+     */
+    public static function getPeerQuestionsForStudents(): array
+    {
+        $allQuestions = self::getAllQuestions();
+        // For now, use the same rubric/questions as self-evaluation. Replace with peer-specific questions if needed.
+        return self::getSelfQuestions($allQuestions);
+    }
     use HasFactory;
 
     protected $fillable = [

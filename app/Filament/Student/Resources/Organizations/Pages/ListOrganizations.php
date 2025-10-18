@@ -25,7 +25,7 @@ class ListOrganizations extends Page
 
     public function getView(): string
     {
-        return 'filament.student.pages.evaluation-cards';
+    return 'filament.student.resources.organizations.pages.EvaluationList';
     }
 
     protected function getViewData(): array
@@ -49,6 +49,7 @@ class ListOrganizations extends Page
             return collect([]);
         }
 
+
         // Self-evaluation tasks
         foreach ($student->organizations as $organization) {
             $selfEvaluation = Evaluation::where([
@@ -60,11 +61,11 @@ class ListOrganizations extends Page
             $tasks->push([
                 'id' => 'self_' . $organization->id,
                 'task_type' => 'Self-Evaluation',
+                'organization_id' => $organization->id,
                 'organization_name' => $organization->name,
                 'department_name' => $organization->department->name ?? 'No Department',
                 'target_name' => 'Yourself',
                 'status' => $selfEvaluation ? 'Completed' : 'Pending',
-                'url' => route('filament.student.resources.organizations.self-evaluate', $organization),
             ]);
         }
 
@@ -84,15 +85,12 @@ class ListOrganizations extends Page
             $tasks->push([
                 'id' => 'peer_' . $assignment->organization_id . '_' . $assignment->evaluatee_student_id,
                 'task_type' => 'Peer Evaluation',
+                'organization_id' => $assignment->organization_id,
                 'organization_name' => $assignment->organization->name,
                 'department_name' => $assignment->organization->department->name ?? 'No Department',
+                'target_id' => $assignment->evaluatee_student_id,
                 'target_name' => $assignment->evaluateeStudent->name,
                 'status' => $peerEvaluation ? 'Completed' : 'Pending',
-                'url' => route('filament.admin.resources.organizations.evaluate-student', [
-                    'organization' => $assignment->organization_id,
-                    'student' => $assignment->evaluatee_student_id,
-                    'type' => 'peer'
-                ]),
             ]);
         }
 
