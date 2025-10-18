@@ -20,6 +20,7 @@ class Evaluation extends Model
         'organization_id',
         'student_id',
         'evaluator_type',
+        'evaluator_id', // Add evaluator_id to fillable
         'answers',
         'evaluator_score',
     ];
@@ -41,6 +42,14 @@ class Evaluation extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    /**
+     * Get the student who performed this evaluation (for peer evaluations)
+     */
+    public function evaluator(): BelongsTo
+    {
+        return $this->belongsTo(Student::class, 'evaluator_id');
     }
 
     // ========================================
@@ -94,6 +103,15 @@ class Evaluation extends Model
             'domain_3_strand_1_q1' => $allQuestions['domain_3_strand_1_q1'],
             'domain_3_strand_2_q1' => $allQuestions['domain_3_strand_2_q1'],
         ];
+    }
+
+    /**
+     * Public method to get self questions for students
+     */
+    public static function getSelfQuestionsForStudents(): array
+    {
+        $allQuestions = self::getAllQuestions();
+        return self::getSelfQuestions($allQuestions);
     }
 
     /**

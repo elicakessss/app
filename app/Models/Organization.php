@@ -60,6 +60,14 @@ class Organization extends Model
     }
 
     /**
+     * Get the peer evaluator assignments for this organization.
+     */
+    public function peerEvaluators(): HasMany
+    {
+        return $this->hasMany(OrganizationPeerEvaluator::class);
+    }
+
+    /**
      * Scope a query to filter by department.
      */
     public function scopeForDepartment($query, $departmentId)

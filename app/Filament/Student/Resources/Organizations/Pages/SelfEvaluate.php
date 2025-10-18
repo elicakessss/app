@@ -1,43 +1,44 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Organizations\Pages;
+namespace App\Filament\Student\Resources\Organizations\Pages;
 
-use App\Filament\Admin\Resources\Organizations\OrganizationResource;
+use App\Filament\Student\Resources\Organizations\OrganizationResource;
 use App\Models\Evaluation;
 use App\Models\Organization;
-use App\Models\Student;
 use App\Traits\HandlesEvaluationForms;
 use Filament\Actions\Action;
-use Filament\Schemas\Schema;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Resources\Pages\Page;
+use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
 
 /**
- * Evaluate Student Page
+ * Self Evaluation Page for Students
  * 
- * Provides dynamic evaluation forms based on evaluator type (adviser, peer, self).
- * Organizes questions by domain and strand for better user experience.
+ * Allows students to complete their self-evaluations using the same evaluation sheet layout
  */
-class EvaluateStudent extends Page implements HasForms
+class SelfEvaluate extends Page implements HasForms
 {
     use InteractsWithForms, HandlesEvaluationForms;
     
     protected static string $resource = OrganizationResource::class;
-    protected string $view = 'filament.admin.resources.organizations.pages.EvaluationSheet';
+    protected string $view = 'filament.student.resources.organizations.pages.SelfEvaluationSheet';
 
     public Organization $organization;
-    public Student $student;
-    public string $type;
     public ?Evaluation $evaluation = null;
     public array $data = [];
 
-    public function mount(Organization $organization, Student $student, string $type): void
+    public function mount(Organization $organization): void
     {
+        // Verify student belongs to this organization
+        $studentId = auth('student')->id();
+        if (!$organization->students()->where('student_id', $studentId)->exists()) {
+            $this->redirect(route('filament.student.resources.organizations.index'));
+            return;
+        }
+
         $this->organization = $organization;
-        $this->student = $student;
-        $this->type = $type;
         $this->loadExistingEvaluation();
     }
 
@@ -46,20 +47,11 @@ class EvaluateStudent extends Page implements HasForms
      */
     protected function loadExistingEvaluation(): void
     {
-        $query = Evaluation::where([
+        $this->evaluation = Evaluation::where([
             'organization_id' => $this->organization->id,
-            'student_id' => $this->student->id,
-            'evaluator_type' => $this->type,
-        ]);
-
-        // For peer evaluations, also match the evaluator_id
-        if ($this->type === 'peer') {
-            $query->where('evaluator_id', auth('student')->id());
-        } else {
-            $query->whereNull('evaluator_id');
-        }
-
-        $this->evaluation = $query->first();
+            'student_id' => auth('student')->id(),
+            'evaluator_type' => 'self',
+        ])->first();
 
         if ($this->evaluation) {
             $this->data = $this->evaluation->answers ?? [];
@@ -68,13 +60,12 @@ class EvaluateStudent extends Page implements HasForms
 
     public function getTitle(): string|Htmlable
     {
-        $evaluatorTitle = ucfirst($this->type);
-        return "{$evaluatorTitle} Evaluation - {$this->student->name}";
+        return "Self Evaluation - {$this->organization->name}";
     }
 
     public function getSubheading(): string|Htmlable|null
     {
-        return "Organization: {$this->organization->name}";
+        return "Complete your self-evaluation for {$this->organization->name}";
     }
 
     public function form(Schema $schema): Schema
@@ -87,7 +78,7 @@ class EvaluateStudent extends Page implements HasForms
      */
     public function save(): void
     {
-        $questions = Evaluation::getQuestionsForEvaluator($this->type);
+        $questions = Evaluation::getSelfQuestionsForStudents();
         if (!$this->validateAnswers($questions)) {
             return;
         }
@@ -97,7 +88,7 @@ class EvaluateStudent extends Page implements HasForms
             : $this->createNewEvaluation($this->data);
 
         $this->sendSuccessNotification();
-        $this->redirectToOrganization();
+        $this->redirectToIndex();
     }
 
     /**
@@ -107,31 +98,35 @@ class EvaluateStudent extends Page implements HasForms
     {
         Evaluation::create([
             'organization_id' => $this->organization->id,
-            'student_id' => $this->student->id,
-            'evaluator_type' => $this->type,
-            'evaluator_id' => $this->type === 'peer' ? auth('student')->id() : null, // Set evaluator_id for peer evaluations
+            'student_id' => auth('student')->id(),
+            'evaluator_type' => 'self',
             'answers' => $data,
         ]);
     }
 
     /**
-     * Redirect back to organization view
+     * Redirect back to organizations index
      */
-    protected function redirectToOrganization(): void
+    protected function redirectToIndex(): void
     {
-        $this->redirect(route('filament.admin.resources.organizations.view', [
-            'record' => $this->organization->id
-        ]));
+        $this->redirect(route('filament.student.resources.organizations.index'));
     }
 
     protected function getHeaderActions(): array
     {
         return [
             Action::make('save')
-                ->label('Save Evaluation')
+                ->label('Save Self Evaluation')
                 ->action('save')
                 ->keyBindings(['mod+s'])
-                ->color('success'),
+                ->color('success')
+                ->icon('heroicon-o-check'),
+                
+            Action::make('back')
+                ->label('Back to Organizations')
+                ->url(route('filament.student.resources.organizations.index'))
+                ->color('gray')
+                ->icon('heroicon-o-arrow-left'),
         ];
     }
 }

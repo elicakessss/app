@@ -51,4 +51,20 @@ class Student extends Authenticatable
             ->withPivot('position')
             ->withTimestamps();
     }
+
+    /**
+     * Get peer evaluator assignments where this student is the evaluatee (being evaluated).
+     */
+    public function peerEvaluationAssignments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OrganizationPeerEvaluator::class, 'evaluatee_student_id');
+    }
+
+    /**
+     * Get peer evaluator assignments where this student is the evaluator (doing the evaluating).
+     */
+    public function peerEvaluatorAssignments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OrganizationPeerEvaluator::class, 'evaluator_student_id');
+    }
 }

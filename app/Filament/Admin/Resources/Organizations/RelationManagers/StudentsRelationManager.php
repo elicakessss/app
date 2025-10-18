@@ -4,9 +4,11 @@ namespace App\Filament\Admin\Resources\Organizations\RelationManagers;
 
 use App\Models\Student;
 use App\Models\Evaluation;
+use App\Models\OrganizationPeerEvaluator;
 use App\Filament\Admin\Resources\Organizations\OrganizationResource;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Actions\AttachAction;
@@ -16,6 +18,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Notifications\Notification;
 
 /**
  * Students Relation Manager
@@ -128,7 +131,8 @@ class StudentsRelationManager extends RelationManager
     protected function getTableActions(): array
     {
         return [
-            $this->getEvaluationActionGroup(),
+            $this->getDirectEvaluationAction(),
+            $this->getOtherEvaluationsAction(),
             $this->getEditAction(),
             $this->getDetachAction(),
         ];
@@ -139,17 +143,34 @@ class StudentsRelationManager extends RelationManager
     // ========================================
 
     /**
-     * Create evaluation action group with all evaluator types
+     * Create direct evaluation action (defaults to adviser)
      */
-    protected function getEvaluationActionGroup(): ActionGroup
+    protected function getDirectEvaluationAction(): Action
+    {
+        return Action::make('evaluate')
+            ->label('Evaluate')
+            ->icon('heroicon-o-clipboard-document-check')
+            ->color('primary')
+            ->button()
+            ->size('sm')
+            ->url(fn ($record) => $this->getEvaluationUrl($record->id, 'adviser'))
+            ->tooltip('Complete adviser evaluation for this student');
+    }
+
+    /**
+     * Create additional evaluation types action group
+     */
+    protected function getOtherEvaluationsAction(): ActionGroup
     {
         return ActionGroup::make([
-            $this->createEvaluationAction('adviser', '🎓 Adviser', 'success'),
             $this->createEvaluationAction('peer', '👥 Peer', 'info'),
             $this->createEvaluationAction('self', '👤 Self', 'warning'),
+            $this->createPeerAssignmentAction(),
         ])
-        ->label('Evaluate')
-        ->button();
+        ->label('Other')
+        ->icon('heroicon-o-ellipsis-horizontal')
+        ->size('sm')
+        ->color('gray');
     }
 
     /**
@@ -161,6 +182,52 @@ class StudentsRelationManager extends RelationManager
             ->label($label)
             ->color($color)
             ->url(fn ($record) => $this->getEvaluationUrl($record->id, $type));
+    }
+
+    /**
+     * Create peer assignment action for assigning peer evaluators
+     */
+    protected function createPeerAssignmentAction(): Action
+    {
+        return Action::make('assign_peer_evaluators')
+            ->label('⚙️ Assign Peer Evaluators')
+            ->color('success')
+            ->icon('heroicon-o-user-group')
+            ->form([
+                Select::make('peer_evaluators')
+                    ->label('Select Peer Evaluators')
+                    ->helperText('Choose up to 2 students who will evaluate this student as peers. Typically, advisers assign students who work closely with the evaluatee.')
+                    ->multiple()
+                    ->maxItems(2)
+                    ->options(function ($record) {
+                        // Get all students in the organization except the current student
+                        return $this->ownerRecord->students()
+                            ->where('students.id', '!=', $record->id)
+                            ->pluck('name', 'students.id')
+                            ->toArray();
+                    })
+                    ->default(function ($record) {
+                        // Load existing peer evaluator assignments
+                        return OrganizationPeerEvaluator::where('organization_id', $this->ownerRecord->id)
+                            ->where('evaluatee_student_id', $record->id)
+                            ->pluck('evaluator_student_id')
+                            ->toArray();
+                    })
+                    ->required(),
+                
+                Textarea::make('assignment_notes')
+                    ->label('Assignment Notes')
+                    ->helperText('Optional notes about why these students were chosen as peer evaluators')
+                    ->placeholder('e.g., "John and Mary work closely with the student on daily tasks and projects"')
+                    ->rows(3)
+                    ->maxLength(500),
+            ])
+            ->action(function ($record, $data) {
+                $this->assignPeerEvaluators($record->id, $data['peer_evaluators'], $data['assignment_notes'] ?? null);
+            })
+            ->modalHeading(fn ($record) => 'Assign Peer Evaluators for ' . $record->name)
+            ->modalDescription('In real-world evaluation processes, advisers typically assign 2 students as peer evaluators. These should be students who work closely with the evaluatee and can provide meaningful peer feedback.')
+            ->modalWidth('lg');
     }
 
     /**
@@ -236,5 +303,46 @@ class StudentsRelationManager extends RelationManager
             ->first();
 
         return $evaluation !== null;
+    }
+
+    /**
+     * Assign peer evaluators to a student
+     */
+    protected function assignPeerEvaluators(int $evaluateeStudentId, array $peerEvaluatorIds, ?string $notes): void
+    {
+        try {
+            // Remove existing peer evaluator assignments for this student
+            OrganizationPeerEvaluator::where('organization_id', $this->ownerRecord->id)
+                ->where('evaluatee_student_id', $evaluateeStudentId)
+                ->delete();
+
+            // Create new peer evaluator assignments
+            foreach ($peerEvaluatorIds as $evaluatorId) {
+                OrganizationPeerEvaluator::create([
+                    'organization_id' => $this->ownerRecord->id,
+                    'evaluatee_student_id' => $evaluateeStudentId,
+                    'evaluator_student_id' => $evaluatorId,
+                    'assigned_by_user_id' => auth()->id(),
+                    'assignment_notes' => $notes,
+                    'assigned_at' => now(),
+                ]);
+            }
+
+            $evaluateeName = Student::find($evaluateeStudentId)->name;
+            $evaluatorNames = Student::whereIn('id', $peerEvaluatorIds)->pluck('name')->join(', ');
+
+            Notification::make()
+                ->title('Peer Evaluators Assigned Successfully')
+                ->body("Assigned {$evaluatorNames} as peer evaluators for {$evaluateeName}")
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Error Assigning Peer Evaluators')
+                ->body('There was an error assigning the peer evaluators. Please try again.')
+                ->danger()
+                ->send();
+        }
     }
 }

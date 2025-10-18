@@ -16,12 +16,17 @@ return new class extends Migration
             $table->foreignId('organization_id')->constrained()->onDelete('cascade');
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->enum('evaluator_type', ['adviser', 'peer', 'self', 'length_of_service']);
+            $table->foreignId('evaluator_id')->nullable()->constrained('students')->onDelete('cascade'); // For peer evaluations - which student did the evaluation
             $table->json('answers'); // Store all question answers
             $table->decimal('evaluator_score', 5, 3); // The computed score for this evaluator
             $table->timestamps();
             
-            // Ensure only one evaluation per student per evaluator type per organization
-            $table->unique(['organization_id', 'student_id', 'evaluator_type']);
+            // For self evaluations: evaluator_id should be NULL
+            // For peer evaluations: evaluator_id should be the student who did the evaluation
+            // For adviser evaluations: evaluator_id should be NULL (done by admin user)
+            
+            // Ensure only one evaluation per student per evaluator type per organization (and per evaluator for peer evaluations)
+            $table->unique(['organization_id', 'student_id', 'evaluator_type', 'evaluator_id'], 'unique_evaluation');
         });
     }
 
