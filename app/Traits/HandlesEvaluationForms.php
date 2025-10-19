@@ -28,12 +28,13 @@ trait HandlesEvaluationForms
 
         $grouped = [];
 
-        foreach ($questions as $key => $text) {
+        foreach ($questions as $key => $question) {
+            // If question is an array, extract text
+            $text = is_array($question) ? ($question['text'] ?? '') : $question;
             if ($key === 'length_of_service') {
                 $grouped['Length of Service']['Service Duration'][$key] = $text;
                 continue;
             }
-
             $this->categorizeQuestion($key, $text, $grouped);
         }
 

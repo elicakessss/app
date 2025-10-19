@@ -19,11 +19,10 @@ class OrganizationResource extends Resource
 {
     protected static ?string $model = Organization::class;
 
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-check';
 
     protected static ?int $navigationSort = 20;
 
-    protected static ?string $navigationLabel = 'My Evaluations';
+    protected static ?string $navigationLabel = 'Evaluations';
 
     protected static ?string $modelLabel = 'Evaluation Task';
 

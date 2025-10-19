@@ -1,4 +1,4 @@
-<x-filament-panels::page>
+<x-filament-panels::page layout="top">
 	@if($tasks->isEmpty())
 		<x-filament::card>
 			<div class="text-center py-12">

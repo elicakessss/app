@@ -26,6 +26,7 @@ class StudentPanelProvider extends PanelProvider
             ->login()
             ->authGuard('student')
             ->authPasswordBroker('students')
+            ->topNavigation()   
             ->colors([
                 'danger' => Color::Rose,
                 'gray' => Color::Slate,

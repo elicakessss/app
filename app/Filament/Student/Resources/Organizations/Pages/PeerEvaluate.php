@@ -20,7 +20,7 @@ use Illuminate\Contracts\Support\Htmlable;
 class PeerEvaluate extends Page implements HasForms
 {
     use InteractsWithForms;
-    
+
     protected static string $resource = OrganizationResource::class;
     protected string $view = 'filament.student.resources.organizations.pages.PeerEvaluationSheet';
 
@@ -29,15 +29,16 @@ class PeerEvaluate extends Page implements HasForms
     public ?Evaluation $evaluation = null;
     public array $data = [];
 
+    /**
+     * Mount the page and verify student belongs to organization
+     */
     public function mount(Organization $organization, Student $student): void
     {
-        // Verify student belongs to this organization
         $studentId = auth('student')->id();
         if (!$organization->students()->where('student_id', $studentId)->exists()) {
             $this->redirect(route('filament.student.resources.organizations.index'));
             return;
         }
-
         $this->organization = $organization;
         $this->targetStudent = $student;
         $this->loadExistingEvaluation();
@@ -54,17 +55,22 @@ class PeerEvaluate extends Page implements HasForms
             'evaluator_type' => 'peer',
             'evaluator_id' => auth('student')->id(),
         ])->first();
-
         if ($this->evaluation) {
             $this->data = $this->evaluation->answers ?? [];
         }
     }
 
+    /**
+     * Get the page title
+     */
     public function getTitle(): string|Htmlable
     {
         return "Peer Evaluation - {$this->targetStudent->name} ({$this->organization->name})";
     }
 
+    /**
+     * Get the page subheading
+     */
     public function getSubheading(): string|Htmlable|null
     {
         return "Complete your peer evaluation for {$this->targetStudent->name} in {$this->organization->name}";
@@ -76,15 +82,26 @@ class PeerEvaluate extends Page implements HasForms
     public function save(): void
     {
         $questions = Evaluation::getPeerQuestionsForStudents();
-        // Add validation logic as needed
         $this->evaluation
             ? $this->updateExistingEvaluation($this->data)
             : $this->createNewEvaluation($this->data);
-
-        // Add notification and redirect logic as needed
         $this->redirectToIndex();
     }
 
+    /**
+     * Update an existing peer evaluation with new answers
+     */
+    protected function updateExistingEvaluation(array $data): void
+    {
+        if ($this->evaluation) {
+            $this->evaluation->answers = $data;
+            $this->evaluation->save();
+        }
+    }
+
+    /**
+     * Create a new peer evaluation
+     */
     protected function createNewEvaluation(array $data): void
     {
         Evaluation::create([
@@ -96,11 +113,17 @@ class PeerEvaluate extends Page implements HasForms
         ]);
     }
 
+    /**
+     * Redirect to the organizations index
+     */
     protected function redirectToIndex(): void
     {
         $this->redirect(route('filament.student.resources.organizations.index'));
     }
 
+    /**
+     * Get header actions for the page
+     */
     protected function getHeaderActions(): array
     {
         return [
@@ -110,7 +133,6 @@ class PeerEvaluate extends Page implements HasForms
                 ->keyBindings(['mod+s'])
                 ->color('success')
                 ->icon('heroicon-o-check'),
-                
             Action::make('back')
                 ->label('Back to Organizations')
                 ->url(route('filament.student.resources.organizations.index'))
