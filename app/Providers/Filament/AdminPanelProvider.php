@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
                 'danger' => Color::Rose,
                 'gray' => Color::Slate,
                 'info' => Color::Blue,
-                'primary' => Color::Hex('#006400'), // Dark green
+                'primary' => Color::Indigo, // Dark green
                 'success' => Color::Emerald,
                 'warning' => Color::Orange,
             ])

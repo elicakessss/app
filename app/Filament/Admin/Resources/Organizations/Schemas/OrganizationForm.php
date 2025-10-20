@@ -22,8 +22,7 @@ class OrganizationForm
                 TextInput::make('name')
                     ->label('Organization Name')
                     ->required()
-                    ->maxLength(255)
-                    ->placeholder('e.g., Student Council 2024-2025'),
+                    ->maxLength(255),
 
                 Select::make('year')
                     ->label('Academic Year')
@@ -57,8 +56,7 @@ class OrganizationForm
                 Textarea::make('description')
                     ->label('Description')
                     ->rows(3)
-                    ->maxLength(1000)
-                    ->placeholder('Brief description of the organization and its purpose'),
+                    ->maxLength(1000),
             ]);
     }
 }

@@ -20,19 +20,30 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
 
-/**
- * Students Relation Manager
- * 
- * Manages student memberships within organizations and provides evaluation actions.
- */
+// Students Relation Manager: Manages student memberships and evaluations within organizations.
 class StudentsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'students';
-    protected static ?string $recordTitleAttribute = 'name';
 
-    // ========================================
-    // FORM CONFIGURATION
-    // ========================================
+        protected static string $relationship = 'students';
+        protected static ?string $recordTitleAttribute = 'name';
+
+        /**
+         * Get the evaluation score for a student and type (self, peer, adviser)
+         */
+        protected function getEvaluationScore(int $studentId, string $evaluatorType): string
+        {
+            $evaluation = Evaluation::where('organization_id', $this->ownerRecord->id)
+                ->where('student_id', $studentId)
+                ->where('evaluator_type', $evaluatorType)
+                ->first();
+
+            if ($evaluation && $evaluation->evaluator_score !== null) {
+                return number_format($evaluation->evaluator_score, 2);
+            }
+            return '-';
+        }
+
+
 
     public function form(Schema $schema): Schema
     {
@@ -45,9 +56,7 @@ class StudentsRelationManager extends RelationManager
         ]);
     }
 
-    // ========================================
-    // TABLE CONFIGURATION
-    // ========================================
+
 
     public function table(Table $table): Table
     {
@@ -56,65 +65,43 @@ class StudentsRelationManager extends RelationManager
             ->headerActions($this->getHeaderActions())
             ->actions($this->getTableActions())
             ->filters([])
-            ->bulkActions([]);
+            ->bulkActions([])
+            ->striped();
     }
 
-    /**
-     * Define table columns
-     */
+    // Table columns configuration
     protected function getTableColumns(): array
     {
         return [
-            TextColumn::make('name')
-                ->label('Student Name')
-                ->searchable()
-                ->sortable(),
-
-            TextColumn::make('email')
-                ->label('Email')
-                ->searchable()
-                ->toggleable(),
-
-            TextColumn::make('pivot.position')
-                ->label('Position')
-                ->placeholder('No position assigned'),
-
-            TextColumn::make('evaluation_status')
-                ->label('Evaluation Status')
-                ->badge()
-                ->getStateUsing(function ($record) {
-                    $adviser = $this->getEvaluationStatus($record->id, 'adviser');
-                    $peer = $this->getEvaluationStatus($record->id, 'peer');
-                    $self = $this->getEvaluationStatus($record->id, 'self');
-                    
-                    $completed = array_filter([$adviser, $peer, $self]);
-                    $total = 3;
-                    
-                    if (count($completed) === $total) {
-                        return 'Complete';
-                    } elseif (count($completed) > 0) {
-                        return count($completed) . '/' . $total . ' Done';
-                    } else {
-                        return 'Pending';
-                    }
-                })
-                ->color(fn (string $state): string => match ($state) {
-                    'Complete' => 'success',
-                    'Pending' => 'danger',
-                    default => 'warning',
-                }),
-
-            TextColumn::make('pivot.created_at')
-                ->label('Added')
-                ->dateTime()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
+            \Filament\Tables\Columns\ColumnGroup::make('Student', [
+                \Filament\Tables\Columns\ImageColumn::make('profile_picture')
+                    ->label('Profile')
+                    ->circular()
+                    ->size(40)
+                    ->getStateUsing(fn ($record) => $record->profile_picture_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($record->name)),
+                \Filament\Tables\Columns\TextColumn::make('name')
+                    ->label('Name')
+                    ->searchable()
+                    ->sortable(),
+                \Filament\Tables\Columns\TextColumn::make('pivot.position')
+                    ->label('Position')
+                    ->placeholder('No position assigned'),
+            ]),
+            \Filament\Tables\Columns\ColumnGroup::make('Evaluation', [
+                \Filament\Tables\Columns\TextColumn::make('self_score')
+                    ->label('Self')
+                    ->getStateUsing(fn ($record) => $this->getEvaluationScore($record->id, 'self')),
+                \Filament\Tables\Columns\TextColumn::make('peer_score')
+                    ->label('Peer')
+                    ->getStateUsing(fn ($record) => $this->getEvaluationScore($record->id, 'peer')),
+                \Filament\Tables\Columns\TextColumn::make('adviser_score')
+                    ->label('Adviser')
+                    ->getStateUsing(fn ($record) => $this->getEvaluationScore($record->id, 'adviser')),
+            ]),
         ];
     }
 
-    /**
-     * Define header actions
-     */
+    // Header actions configuration
     protected function getHeaderActions(): array
     {
         return [
@@ -122,12 +109,56 @@ class StudentsRelationManager extends RelationManager
                 ->label('Add Student')
                 ->form($this->getAttachForm())
                 ->preloadRecordSelect(),
+            $this->getBulkPeerAssignmentAction(),
         ];
     }
 
-    /**
-     * Define row actions
-     */
+    // Bulk peer assignment action for header
+    protected function getBulkPeerAssignmentAction(): Action
+    {
+        return Action::make('assign_peer_evaluators')
+            ->label('Assign Peer Evaluators')
+            ->color('success')
+            ->icon('heroicon-o-user-group')
+            ->modalHeading('Assign Peer Evaluators')
+            ->modalDescription('Assign up to 2 peer evaluators for each student. Assigned peers are checked and cannot be changed.')
+            ->modalWidth('xl')
+            ->form(function () {
+                $students = $this->ownerRecord->students()->get();
+                $fields = [];
+                foreach ($students as $student) {
+                    $studentId = $student->id;
+                    $assigned = OrganizationPeerEvaluator::where('organization_id', $this->ownerRecord->id)
+                        ->where('evaluatee_student_id', $studentId)
+                        ->pluck('evaluator_student_id')
+                        ->toArray();
+                    $options = $this->ownerRecord->students()
+                        ->where('students.id', '!=', $studentId)
+                        ->pluck('name', 'students.id')
+                        ->toArray();
+                    $fields[] = \Filament\Forms\Components\CheckboxList::make('peer_evaluators_' . $studentId)
+                        ->label($student->name)
+                        ->options($options)
+                        ->default($assigned)
+                        ->disabled($assigned)
+                        ->maxItems(2)
+                        ->columns(2)
+                        ->helperText('Select up to 2 peer evaluators for ' . $student->name);
+                }
+                return $fields;
+            })
+            ->action(function ($data) {
+                $students = $this->ownerRecord->students()->get();
+                foreach ($students as $student) {
+                    $studentId = $student->id;
+                    $key = 'peer_evaluators_' . $studentId;
+                    $peerEvaluatorIds = $data[$key] ?? [];
+                    $this->assignPeerEvaluators($studentId, $peerEvaluatorIds, null);
+                }
+            });
+    }
+
+    // Row actions configuration
     protected function getTableActions(): array
     {
         return [
@@ -138,17 +169,12 @@ class StudentsRelationManager extends RelationManager
         ];
     }
 
-    // ========================================
-    // ACTION DEFINITIONS
-    // ========================================
 
-    /**
-     * Create direct evaluation action (defaults to adviser)
-     */
+
+    // Direct evaluation action (defaults to adviser)
     protected function getDirectEvaluationAction(): Action
     {
         return Action::make('evaluate')
-            ->label('Evaluate')
             ->icon('heroicon-o-clipboard-document-check')
             ->color('primary')
             ->button()
@@ -157,9 +183,7 @@ class StudentsRelationManager extends RelationManager
             ->tooltip('Complete adviser evaluation for this student');
     }
 
-    /**
-     * Create additional evaluation types action group
-     */
+    // Additional evaluation types action group
     protected function getOtherEvaluationsAction(): ActionGroup
     {
         return ActionGroup::make([
@@ -167,15 +191,13 @@ class StudentsRelationManager extends RelationManager
             $this->createEvaluationAction('self', '👤 Self', 'warning'),
             $this->createPeerAssignmentAction(),
         ])
-        ->label('Other')
         ->icon('heroicon-o-ellipsis-horizontal')
-        ->size('sm')
-        ->color('gray');
+        ->button()
+        ->color('primary')
+        ->size('sm');
     }
 
-    /**
-     * Create individual evaluation action
-     */
+    // Individual evaluation action
     protected function createEvaluationAction(string $type, string $label, string $color): Action
     {
         return Action::make("{$type}_evaluation")
@@ -184,9 +206,7 @@ class StudentsRelationManager extends RelationManager
             ->url(fn ($record) => $this->getEvaluationUrl($record->id, $type));
     }
 
-    /**
-     * Create peer assignment action for assigning peer evaluators
-     */
+    // Peer assignment action for assigning peer evaluators
     protected function createPeerAssignmentAction(): Action
     {
         return Action::make('assign_peer_evaluators')
@@ -194,11 +214,9 @@ class StudentsRelationManager extends RelationManager
             ->color('success')
             ->icon('heroicon-o-user-group')
             ->form([
-                Select::make('peer_evaluators')
+                \Filament\Forms\Components\CheckboxList::make('peer_evaluators')
                     ->label('Select Peer Evaluators')
-                    ->helperText('Choose up to 2 students who will evaluate this student as peers. Typically, advisers assign students who work closely with the evaluatee.')
-                    ->multiple()
-                    ->maxItems(2)
+                    ->helperText('Choose up to 2 students who will evaluate this student as peers. Assigned peers are checked and cannot be changed.')
                     ->options(function ($record) {
                         // Get all students in the organization except the current student
                         return $this->ownerRecord->students()
@@ -213,9 +231,27 @@ class StudentsRelationManager extends RelationManager
                             ->pluck('evaluator_student_id')
                             ->toArray();
                     })
+                    ->disabled(function ($record) {
+                        // Disable already assigned peer evaluators
+                        $assigned = OrganizationPeerEvaluator::where('organization_id', $this->ownerRecord->id)
+                            ->where('evaluatee_student_id', $record->id)
+                            ->pluck('evaluator_student_id')
+                            ->toArray();
+                        $options = $this->ownerRecord->students()
+                            ->where('students.id', '!=', $record->id)
+                            ->pluck('students.id')
+                            ->toArray();
+                        $disabled = [];
+                        foreach ($options as $id) {
+                            if (in_array($id, $assigned)) {
+                                $disabled[] = $id;
+                            }
+                        }
+                        return $disabled;
+                    })
+                    ->columns(2)
                     ->required(),
-                
-                Textarea::make('assignment_notes')
+                \Filament\Forms\Components\Textarea::make('assignment_notes')
                     ->label('Assignment Notes')
                     ->helperText('Optional notes about why these students were chosen as peer evaluators')
                     ->placeholder('e.g., "John and Mary work closely with the student on daily tasks and projects"')
@@ -226,13 +262,11 @@ class StudentsRelationManager extends RelationManager
                 $this->assignPeerEvaluators($record->id, $data['peer_evaluators'], $data['assignment_notes'] ?? null);
             })
             ->modalHeading(fn ($record) => 'Assign Peer Evaluators for ' . $record->name)
-            ->modalDescription('In real-world evaluation processes, advisers typically assign 2 students as peer evaluators. These should be students who work closely with the evaluatee and can provide meaningful peer feedback.')
+            ->modalDescription('Assigned peer evaluators are checked and cannot be changed. Advisers may assign up to 2 students as peer evaluators.')
             ->modalWidth('lg');
     }
 
-    /**
-     * Generate evaluation URL for specific student and type
-     */
+    // Generate evaluation URL for specific student and type
     protected function getEvaluationUrl(int $studentId, string $evaluatorType): string
     {
         return OrganizationResource::getUrl('evaluate-student', [
@@ -242,9 +276,7 @@ class StudentsRelationManager extends RelationManager
         ]);
     }
 
-    /**
-     * Create edit action for student position
-     */
+    // Edit action for student position
     protected function getEditAction(): EditAction
     {
         return EditAction::make()
@@ -256,21 +288,15 @@ class StudentsRelationManager extends RelationManager
             ]);
     }
 
-    /**
-     * Create detach action to remove student
-     */
+    // Detach action to remove student
     protected function getDetachAction(): DetachAction
     {
         return DetachAction::make()->label('Remove');
     }
 
-    // ========================================
-    // FORM HELPERS
-    // ========================================
 
-    /**
-     * Get form fields for attaching students
-     */
+
+    // Form fields for attaching students
     protected function getAttachForm(): array
     {
         return [
@@ -283,18 +309,13 @@ class StudentsRelationManager extends RelationManager
             TextInput::make('position')
                 ->label('Position')
                 ->required()
-                ->maxLength(255)
-                ->placeholder('e.g., Team Leader, Secretary, Member'),
+                ->maxLength(255),
         ];
     }
 
-    // ========================================
-    // UTILITY METHODS
-    // ========================================
 
-    /**
-     * Check evaluation completion status for a student
-     */
+
+    // Check evaluation completion status for a student
     protected function getEvaluationStatus(int $studentId, string $evaluatorType): bool
     {
         $evaluation = Evaluation::where('organization_id', $this->ownerRecord->id)
@@ -305,9 +326,7 @@ class StudentsRelationManager extends RelationManager
         return $evaluation !== null;
     }
 
-    /**
-     * Assign peer evaluators to a student
-     */
+    // Assign peer evaluators to a student
     protected function assignPeerEvaluators(int $evaluateeStudentId, array $peerEvaluatorIds, ?string $notes): void
     {
         try {

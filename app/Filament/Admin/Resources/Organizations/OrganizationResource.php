@@ -1,6 +1,7 @@
 <?php
-
 namespace App\Filament\Admin\Resources\Organizations;
+use Filament\Infolists;
+use Filament\Schemas\Schema;
 
 use App\Filament\Admin\Resources\Organizations\Pages\CreateOrganization;
 use App\Filament\Admin\Resources\Organizations\Pages\EditOrganization;
@@ -13,12 +14,27 @@ use App\Filament\Admin\Resources\Organizations\Tables\OrganizationsTable;
 use App\Models\Organization;
 use BackedEnum;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
 
 class OrganizationResource extends Resource
 {
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            TextEntry::make('name')->label('Organization Name'),
+            ImageEntry::make('logo')->label('Logo')->height(64)->width(64),
+            TextEntry::make('department.name')->label('Department'),
+            TextEntry::make('year')->label('Academic Year'),
+            TextEntry::make('description')->label('Description'),
+        ]);
+    }
+    public static function form(Schema $schema): Schema
+    {
+        return OrganizationForm::configure($schema);
+    }
     protected static ?string $model = Organization::class;
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office-2';
@@ -60,10 +76,7 @@ class OrganizationResource extends Resource
         return auth()->user()?->hasRole('Admin') ?? false; // Only admin can delete
     }
 
-    public static function form(Schema $schema): Schema
-    {
-        return OrganizationForm::configure($schema);
-    }
+    // Removed form() method to ensure InfoList is used for the view page
 
     public static function table(Table $table): Table
     {
