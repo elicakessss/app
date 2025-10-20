@@ -16,19 +16,59 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 
 class OrganizationResource extends Resource
 {
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            TextEntry::make('name')->label('Organization Name'),
-            ImageEntry::make('logo')->label('Logo')->height(64)->width(64),
-            TextEntry::make('department.name')->label('Department'),
-            TextEntry::make('year')->label('Academic Year'),
-            TextEntry::make('description')->label('Description'),
+            Section::make('Organization Details')
+                ->schema([
+                    Grid::make(2)->schema([
+                        TextEntry::make('name')
+                            ->label('Organization Name'),
+                        TextEntry::make('year')
+                            ->label('Academic Year')
+                            ->formatStateUsing(fn ($state) => $state . '-' . ($state + 1)),
+                    ]),
+                    Grid::make(2)->schema([
+                        TextEntry::make('user.name')
+                            ->label('Adviser'),
+                        TextEntry::make('department.name')
+                            ->label('Department'),
+                    ]),
+                ]),
+
+            Section::make('Peer Evaluator Details')
+                ->schema([
+                    RepeatableEntry::make('peer_evaluators')
+                        ->state(function ($record) {
+                            return \App\Models\OrganizationPeerEvaluator::where('organization_id', $record->id)
+                                ->with('evaluatorStudent')
+                                ->get()
+                                ->groupBy('evaluator_student_id')
+                                ->map(function ($assignments, $evaluatorId) {
+                                    $evaluator = $assignments->first()->evaluatorStudent;
+                                    return [
+                                        'name' => $evaluator ? $evaluator->name : 'Unknown',
+                                        'evaluatee_count' => $assignments->count(),
+                                    ];
+                                })->values()->toArray();
+                        })
+                        ->schema([
+                            Grid::make(2)->schema([
+                                TextEntry::make('name')
+                                    ->label('Peer Evaluator'),
+                                TextEntry::make('evaluatee_count')
+                                    ->label('Evaluatee Count'),
+                            ]),
+                        ]),
+                ]),
         ]);
     }
     public static function form(Schema $schema): Schema

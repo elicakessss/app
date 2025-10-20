@@ -2,34 +2,35 @@
 
 namespace App\Filament\Admin\Resources\Organizations\Schemas;
 
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Infolist;
 
 class OrganizationDetailsInfolist
 {
-    public static function configure(Infolist $infolist, $organization): Infolist
+    public static function configure($schema): mixed
     {
-        return $infolist->components([
-            \Filament\Infolists\Components\Card::make()
+        return $schema->components([
+            \Filament\Schemas\Components\Grid::make(2)
                 ->schema([
-                    \Filament\Infolists\Components\Section::make('Organization Details')
+                    \Filament\Schemas\Components\Section::make('Organization Details')
                         ->schema([
-                            ImageEntry::make('logo')
+                            \Filament\Infolists\Components\ImageEntry::make('logo')
                                 ->label('Logo')
                                 ->height(64)
                                 ->width(64)
                                 ->alignCenter(),
-                            TextEntry::make('name')->label('Organization Name'),
-                            TextEntry::make('department.name')->label('Department'),
-                            TextEntry::make('year')->label('Academic Year'),
-                            TextEntry::make('description')->label('Description'),
-                        ])
-                        ->columns(1),
-                ])
-                ->columnSpanFull()
-                ->extraAttributes(['class' => 'mb-6']),
+                            \Filament\Infolists\Components\TextEntry::make('name')->label('Organization Name'),
+                            \Filament\Infolists\Components\TextEntry::make('department.name')->label('Department'),
+                            \Filament\Infolists\Components\TextEntry::make('year')->label('Academic Year'),
+                            \Filament\Infolists\Components\TextEntry::make('description')->label('Description'),
+                        ]),
+                    \Filament\Schemas\Components\Section::make('Peer Evaluator Details')
+                        ->schema([
+                            // Add peer evaluator TextEntry/ImageEntry fields here
+                        ]),
+                ]),
         ]);
     }
 }
