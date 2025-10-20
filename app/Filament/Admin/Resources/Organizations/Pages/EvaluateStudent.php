@@ -32,6 +32,7 @@ class EvaluateStudent extends Page implements HasForms
     public string $type;
     public ?Evaluation $evaluation = null;
     public array $data = [];
+    public bool $isLocked = false;
 
     public function mount(Organization $organization, Student $student, string $type): void
     {
@@ -39,6 +40,7 @@ class EvaluateStudent extends Page implements HasForms
         $this->student = $student;
         $this->type = $type;
         $this->loadExistingEvaluation();
+        $this->isLocked = $this->evaluation !== null; // Lock if already submitted
     }
 
     /**
@@ -126,12 +128,17 @@ class EvaluateStudent extends Page implements HasForms
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('save')
-                ->label('Save Evaluation')
+        $actions = [];
+        if (! $this->isLocked) {
+            $actions[] = Action::make('save')
+                ->label('Submit Evaluation')
                 ->action('save')
+                ->requiresConfirmation()
+                ->modalHeading('Submit Evaluation?')
+                ->modalDescription('Are you sure you want to submit this evaluation? You will not be able to edit it afterwards.')
                 ->keyBindings(['mod+s'])
-                ->color('success'),
-        ];
+                ->color('success');
+        }
+        return $actions;
     }
 }

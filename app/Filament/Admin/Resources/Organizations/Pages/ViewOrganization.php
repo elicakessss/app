@@ -35,4 +35,20 @@ class ViewOrganization extends ViewRecord
 
         return $evaluation ? 'Done' : null;
     }
+
+    // Render the InfoList and the relation managers (students table) together
+    protected function getViewContent(): array
+    {
+        return array_merge(
+            // InfoList from the resource
+            [$this->getInfolist()],
+            // Relation managers registered on the resource
+            $this->getRelationManagerComponents()
+        );
+    }
+
+    protected function getInfolist()
+    {
+        return $this->getResource()::infolist(app(\Filament\Schemas\Schema::class))->render($this->record);
+    }
 }

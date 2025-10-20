@@ -91,6 +91,7 @@
                                                         wire:model="data.{{ $questionKey }}"
                                                         class="w-4 h-4 text-blue-600"
                                                         required
+                                                        @if($this->isLocked) disabled @endif
                                                     >
                                                 </td>
                                             @endfor
@@ -102,6 +103,17 @@
                     </table>
                 </div>
             </div>
+            @if(!$this->isLocked)
+                <div class="mt-6 flex justify-end">
+                    <button type="submit" class="filament-button filament-button--success">
+                        Submit Evaluation
+                    </button>
+                </div>
+            @else
+                <div class="mt-6 text-center text-green-700 font-semibold">
+                    This evaluation has been submitted and is now read-only.
+                </div>
+            @endif
         </form>
     </div>
 </x-filament-panels::page>

@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Organizations\RelationManagers;
 
 use App\Models\Student;
 use App\Models\OrganizationPeerEvaluator;
+use App\Models\Evaluation;
 use App\Filament\Admin\Resources\Organizations\OrganizationResource;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -258,5 +259,15 @@ class StudentsRelationManager extends RelationManager
                 ->danger()
                 ->send();
         }
+    }
+
+    // Restore getEvaluationUrl for Evaluate action
+    protected function getEvaluationUrl(int $studentId, string $evaluatorType): string
+    {
+        return \App\Filament\Admin\Resources\Organizations\OrganizationResource::getUrl('evaluate-student', [
+            'organization' => $this->ownerRecord->id,
+            'student' => $studentId,
+            'type' => $evaluatorType,
+        ]);
     }
 }
