@@ -88,6 +88,7 @@
                                                     wire:model="data.{{ $questionKey }}"
                                                     class="w-4 h-4 text-yellow-600"
                                                     required
+                                                    @if($this->evaluation) disabled @endif
                                                 >
                                             </td>
                                         @endfor

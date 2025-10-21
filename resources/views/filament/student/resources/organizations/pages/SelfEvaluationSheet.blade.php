@@ -43,22 +43,17 @@
                             </th>
                         </tr>
                     </thead>
-                    
                     {{-- Table Body --}}
                     <tbody>
                         @php
                             $groupedQuestions = $this->groupQuestions(\App\Models\Evaluation::getSelfQuestionsForStudents());
                         @endphp
-                        
                         @foreach($groupedQuestions as $domainName => $strands)
                             @if(!$loop->first)
-                                {{-- Spacing between domains --}}
                                 <tr>
                                     <td colspan="5" class="h-5 border-none bg-transparent"></td>
                                 </tr>
                             @endif
-                            
-                            {{-- Domain Header Row --}}
                             <tr>
                                 <td colspan="5" class="border border-gray-400 px-4 py-4">
                                     <h4 class="text-xl font-bold text-emerald-800 m-0 leading-tight">
@@ -66,16 +61,12 @@
                                     </h4>
                                 </td>
                             </tr>
-                            
-                            {{-- Domain Description Row --}}
                             <tr>
                                 <td colspan="5" class="border border-gray-400 px-4 py-3">
                                     <x-evaluation-domain-description :domain-name="$domainName" />
                                 </td>
                             </tr>
-
                             @foreach($strands as $strandName => $strandQuestions)
-                                {{-- Strand Header Row --}}
                                 <tr>
                                     <td colspan="5" class="border border-gray-400 px-4 py-3">
                                         <h6 class="text-base font-semibold text-emerald-800 m-0 leading-tight">
@@ -83,8 +74,6 @@
                                         </h6>
                                     </td>
                                 </tr>
-                                
-                                {{-- Questions for this Strand --}}
                                 @foreach($strandQuestions as $questionKey => $questionText)
                                     <tr class="hover:bg-gray-50">
                                         <td class="border border-gray-400 px-4 py-3 text-sm">
@@ -99,6 +88,7 @@
                                                     wire:model="data.{{ $questionKey }}"
                                                     class="w-4 h-4 text-blue-600"
                                                     required
+                                                    @if($this->evaluation) disabled @endif
                                                 >
                                             </td>
                                         @endfor

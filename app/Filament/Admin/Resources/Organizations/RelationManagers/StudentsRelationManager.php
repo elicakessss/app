@@ -206,6 +206,16 @@ class StudentsRelationManager extends RelationManager
                               ->orWhere('evaluator_student_id', $record->id);
                     })
                     ->delete();
+
+                // Remove all evaluations for this student in this organization
+                Evaluation::where('organization_id', $this->ownerRecord->id)
+                    ->where('student_id', $record->id)
+                    ->delete();
+
+                // Remove rank record for this student in this organization
+                \App\Models\Rank::where('organization_id', $this->ownerRecord->id)
+                    ->where('student_id', $record->id)
+                    ->delete();
             });
     }
 

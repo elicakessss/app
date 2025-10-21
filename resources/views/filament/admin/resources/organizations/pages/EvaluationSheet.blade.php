@@ -109,10 +109,6 @@
                         Submit Evaluation
                     </button>
                 </div>
-            @else
-                <div class="mt-6 text-center text-green-700 font-semibold">
-                    This evaluation has been submitted and is now read-only.
-                </div>
             @endif
         </form>
     </div>
