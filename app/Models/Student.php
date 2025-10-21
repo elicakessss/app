@@ -43,11 +43,11 @@ class Student extends Authenticatable
     ];
 
     /**
-     * Get the organizations that this student belongs to.
+     * Get the evaluations this student participates in.
      */
-    public function organizations(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function evaluations(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Organization::class, 'organization_student')
+        return $this->belongsToMany(Evaluation::class, 'evaluation_student')
             ->withPivot('position')
             ->withTimestamps();
     }
@@ -57,7 +57,7 @@ class Student extends Authenticatable
      */
     public function peerEvaluationAssignments(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(OrganizationPeerEvaluator::class, 'evaluatee_student_id');
+        return $this->hasMany(EvaluationPeerEvaluator::class, 'evaluatee_student_id');
     }
 
     /**
@@ -65,6 +65,6 @@ class Student extends Authenticatable
      */
     public function peerEvaluatorAssignments(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(OrganizationPeerEvaluator::class, 'evaluator_student_id');
+        return $this->hasMany(EvaluationPeerEvaluator::class, 'evaluator_student_id');
     }
 }

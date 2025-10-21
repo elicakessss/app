@@ -1,14 +1,13 @@
 <?php
+namespace App\Filament\Admin\Resources\Evaluations\Pages;
 
-namespace App\Filament\Admin\Resources\Organizations\Pages;
-
-use App\Filament\Admin\Resources\Organizations\OrganizationResource;
+use App\Filament\Admin\Resources\Evaluations\EvaluationResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
-class EditOrganization extends EditRecord
+class EditEvaluation extends EditRecord
 {
-    protected static string $resource = OrganizationResource::class;
+    protected static string $resource = EvaluationResource::class;
 
     protected function getRedirectUrl(): string
     {

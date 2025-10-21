@@ -42,18 +42,27 @@ class TestDataSeeder extends Seeder
             ]);
         }
 
-        // Attach students to organization with positions
-        $organization->students()->syncWithoutDetaching([
+        // Create a sample evaluation event for this organization and attach students to it
+        $evaluationEvent = Evaluation::firstOrCreate([
+            'organization_id' => $organization->id,
+            'user_id' => 1, // fallback admin user id
+            'year' => 2024,
+        ], [
+            'name' => '2024 Organizational Evaluation',
+        ]);
+
+        // Attach students to the evaluation event with positions
+        $evaluationEvent->students()->syncWithoutDetaching([
             $student1->id => ['position' => 'President'],
             $student2->id => ['position' => 'Vice President'],
         ]);
 
-        // Create sample evaluations for student1
-        $this->createEvaluationsForStudent($organization, $student1);
-        $this->createEvaluationsForStudent($organization, $student2);
+        // Create sample evaluation scores for students
+        $this->createEvaluationsForStudent($evaluationEvent, $student1);
+        $this->createEvaluationsForStudent($evaluationEvent, $student2);
     }
 
-    private function createEvaluationsForStudent(Organization $organization, Student $student): void
+    private function createEvaluationsForStudent(Evaluation $evaluation, Student $student): void
     {
         // Adviser Evaluation (All questions)
         $adviserAnswers = [
@@ -72,10 +81,12 @@ class TestDataSeeder extends Seeder
             'length_of_service' => 2.0,
         ];
 
-        Evaluation::updateOrCreate([
-            'organization_id' => $organization->id,
+        // Adviser evaluation score
+        \App\Models\EvaluationScore::updateOrCreate([
+            'evaluation_id' => $evaluation->id,
             'student_id' => $student->id,
             'evaluator_type' => 'adviser',
+            'evaluator_id' => null,
         ], [
             'answers' => $adviserAnswers,
         ]);
@@ -91,10 +102,12 @@ class TestDataSeeder extends Seeder
             'domain_3_strand_2_q1' => 2.0,
         ];
 
-        Evaluation::updateOrCreate([
-            'organization_id' => $organization->id,
+        // Peer evaluation score (use evaluator_id placeholder 2)
+        \App\Models\EvaluationScore::updateOrCreate([
+            'evaluation_id' => $evaluation->id,
             'student_id' => $student->id,
             'evaluator_type' => 'peer',
+            'evaluator_id' => 2,
         ], [
             'answers' => $peerAnswers,
         ]);
@@ -108,10 +121,12 @@ class TestDataSeeder extends Seeder
             'domain_3_strand_2_q1' => 3.0,
         ];
 
-        Evaluation::updateOrCreate([
-            'organization_id' => $organization->id,
+        // Self evaluation score
+        \App\Models\EvaluationScore::updateOrCreate([
+            'evaluation_id' => $evaluation->id,
             'student_id' => $student->id,
             'evaluator_type' => 'self',
+            'evaluator_id' => null,
         ], [
             'answers' => $selfAnswers,
         ]);

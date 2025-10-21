@@ -2,243 +2,89 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Evaluation Model
- * 
- * Stores evaluation scores for students by different evaluator types.
-
- * Automatically calculates evaluator scores and triggers rank recalculation.
+ *
+ * Represents an evaluation entity (not scores).
  */
 class Evaluation extends Model
 {
     use HasFactory;
 
-
-    /**
-     * Public method to get peer questions for students
-     */
-    public static function getPeerQuestionsForStudents(): array
-    {
-        $allQuestions = self::getAllQuestions();
-        // Return only the peer questions, with human-readable text
-        return self::getPeerQuestions($allQuestions);
-    }
-
-
     protected $fillable = [
         'organization_id',
-        'student_id',
-        'evaluator_type',
-        'evaluator_id',
-        'answers',
-        'evaluator_score',
+        'user_id',
+        'name',
+        'logo',
+        'description',
+        'year',
     ];
-
 
     protected $casts = [
-        'answers' => 'array',
-        'evaluator_score' => 'decimal:3',
+        'year' => 'integer',
     ];
 
-    // ========================================
-    // RELATIONSHIPS
-    // ========================================
+    /**
+     * Get the user who created this evaluation.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
+    /**
+     * Get the organization that owns this evaluation.
+     */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function student(): BelongsTo
+    /**
+     * Get the students that belong to this evaluation.
+     */
+    public function students(): BelongsToMany
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsToMany(Student::class, 'evaluation_student')
+            ->withPivot('position')
+            ->withTimestamps();
     }
 
     /**
-     * Get the student who performed this evaluation (for peer evaluations)
+     * Get the ranks for this evaluation.
      */
-    public function evaluator(): BelongsTo
+    public function ranks(): HasMany
     {
-        return $this->belongsTo(Student::class, 'evaluator_id');
-    }
-
-    // ========================================
-    // QUESTION MANAGEMENT
-    // ========================================
-
-    /**
-     * Get questions visible to specific evaluator type
-     */
-    public static function getQuestionsForEvaluator(string $evaluatorType): array
-    {
-        $allQuestions = self::getAllQuestions();
-        
-        return match ($evaluatorType) {
-            'adviser' => $allQuestions, // All domains + length of service
-            'peer' => self::getPeerQuestions($allQuestions),
-            'self' => self::getSelfQuestions($allQuestions),
-            default => [],
-        };
+        return $this->hasMany(Rank::class);
     }
 
     /**
-     * Get peer evaluator questions (Domain 2 all strands + Domain 3 strands 1-2)
+     * Get the peer evaluator assignments for this evaluation.
      */
-    protected static function getPeerQuestions(array $allQuestions): array
+    public function peerEvaluators(): HasMany
     {
-        return [
-            // Domain 2: All strands (1-3)
-            'domain_2_strand_1_q1' => $allQuestions['domain_2_strand_1_q1'],
-            'domain_2_strand_2_q1' => $allQuestions['domain_2_strand_2_q1'],
-            'domain_2_strand_2_q2' => $allQuestions['domain_2_strand_2_q2'],
-            'domain_2_strand_3_q1' => $allQuestions['domain_2_strand_3_q1'],
-            'domain_2_strand_3_q2' => $allQuestions['domain_2_strand_3_q2'],
-            // Domain 3: Strands 1-2
-            'domain_3_strand_1_q1' => $allQuestions['domain_3_strand_1_q1'],
-            'domain_3_strand_2_q1' => $allQuestions['domain_3_strand_2_q1'],
-        ];
+        return $this->hasMany(EvaluationPeerEvaluator::class);
     }
 
     /**
-     * Get self evaluator questions (Domain 2 strands 1-2 + Domain 3 all strands)
+     * Scope a query to filter by organization.
      */
-    protected static function getSelfQuestions(array $allQuestions): array
+    public function scopeForOrganization($query, $organizationId)
     {
-        return [
-            // Domain 2: Strands 1-2
-            'domain_2_strand_1_q1' => $allQuestions['domain_2_strand_1_q1'],
-            'domain_2_strand_2_q1' => $allQuestions['domain_2_strand_2_q1'],
-            'domain_2_strand_2_q2' => $allQuestions['domain_2_strand_2_q2'],
-            // Domain 3: All strands
-            'domain_3_strand_1_q1' => $allQuestions['domain_3_strand_1_q1'],
-            'domain_3_strand_2_q1' => $allQuestions['domain_3_strand_2_q1'],
-        ];
+        return $query->where('organization_id', $organizationId);
     }
 
     /**
-     * Public method to get self questions for students
+     * Scope a query to filter by year.
      */
-    public static function getSelfQuestionsForStudents(): array
+    public function scopeForYear($query, $year)
     {
-        $allQuestions = self::getAllQuestions();
-        return self::getSelfQuestions($allQuestions);
-    }
-
-    /**
-     * Get complete rubric questions with proper structure
-     */
-    public static function getAllQuestions(): array
-    {
-        return [
-            // Domain 1: Paulinian Leadership as Social Responsibility
-            'domain_1_strand_1_q1' => [
-                'text' => 'The Paulinian Leader organizes/co-organizes and/or serves as resource speaker in seminars and activities for the organization.',
-                'domain' => 'Domain 1: Paulinian Leadership as Social Responsibility',
-                'strand' => 'Strand 1: Participation in Organization Activities',
-            ],
-            'domain_1_strand_1_q2' => [
-                'text' => 'The Paulinian Leader facilitates/co-facilitates seminars and activities for the organization.',
-                'domain' => 'Domain 1: Paulinian Leadership as Social Responsibility',
-                'strand' => 'Strand 1: Participation in Organization Activities',
-            ],
-            'domain_1_strand_1_q3' => [
-                'text' => 'The Paulinian Leader participates in seminars/activities of the organization.',
-                'domain' => 'Domain 1: Paulinian Leadership as Social Responsibility',
-                'strand' => 'Strand 1: Participation in Organization Activities',
-            ],
-            'domain_1_strand_1_q4' => [
-                'text' => 'The Paulinian Leader attends SPUP-organized seminars and activities related to the organization.',
-                'domain' => 'Domain 1: Paulinian Leadership as Social Responsibility',
-                'strand' => 'Strand 1: Participation in Organization Activities',
-            ],
-            'domain_1_strand_2_q1' => [
-                'text' => 'The Paulinian Leader ensures quality in all tasks/assignments given.',
-                'domain' => 'Domain 1: Paulinian Leadership as Social Responsibility',
-                'strand' => 'Strand 2: Quality of Work',
-            ],
-            // Domain 2: Paulinian Leadership as a Life of Service
-            'domain_2_strand_1_q1' => [
-                'text' => 'The Paulinian Leader performs related tasks outside the given assignment: initiates actions to solve issues among students and those that concern the organization/university; and participates in the aftercare during activities.',
-                'domain' => 'Domain 2: Paulinian Leadership as a Life of Service',
-                'strand' => 'Strand 1: Initiative and Service',
-            ],
-            'domain_2_strand_2_q1' => [
-                'text' => 'The Paulinian Leader shares in the organization\'s management and evaluation of the organization.',
-                'domain' => 'Domain 2: Paulinian Leadership as a Life of Service',
-                'strand' => 'Strand 2: Management and Evaluation',
-            ],
-            'domain_2_strand_2_q2' => [
-                'text' => 'The Paulinian Leader shares in the organization: management and evaluation of projects/activities of the university.',
-                'domain' => 'Domain 2: Paulinian Leadership as a Life of Service',
-                'strand' => 'Strand 2: Management and Evaluation',
-            ],
-            'domain_2_strand_3_q1' => [
-                'text' => 'The Paulinian Leader attends regular meetings.',
-                'domain' => 'Domain 2: Paulinian Leadership as a Life of Service',
-                'strand' => 'Strand 3: Attendance',
-            ],
-            'domain_2_strand_3_q2' => [
-                'text' => 'The Paulinian Leader attends all emergency meetings called.',
-                'domain' => 'Domain 2: Paulinian Leadership as a Life of Service',
-                'strand' => 'Strand 3: Attendance',
-            ],
-            // Domain 3: Paulinian Leader as Leading by Example (Discipline/Decorum)
-            'domain_3_strand_1_q1' => [
-                'text' => 'The Paulinian Leader is a model of grooming and proper decorum.',
-                'domain' => 'Domain 3: Paulinian Leader as Leading by Example (Discipline/Decorum)',
-                'strand' => 'Strand 1: Grooming and Decorum',
-            ],
-            'domain_3_strand_2_q1' => [
-                'text' => 'The Paulinian Leader ensures cleanliness and orderliness of office/workplace.',
-                'domain' => 'Domain 3: Paulinian Leader as Leading by Example (Discipline/Decorum)',
-                'strand' => 'Strand 2: Cleanliness and Orderliness',
-            ],
-            // Length of Service
-            'length_of_service' => [
-                'text' => 'Paulinian Leader had served the Department/University',
-                'domain' => 'Other',
-                'strand' => 'Other',
-            ],
-        ];
-    }
-
-    // ========================================
-    // SCORE CALCULATION
-    // ========================================
-
-    /**
-     * Calculate average score from answers
-     */
-    public function calculateScore(): float
-    {
-        if (!$this->answers || empty($this->answers)) {
-            return 0;
-        }
-
-        $scores = array_filter($this->answers, 'is_numeric');
-        
-        return count($scores) > 0 
-            ? round(array_sum($scores) / count($scores), 3) 
-            : 0;
-    }
-
-    // ========================================
-    // MODEL EVENTS
-    // ========================================
-
-    protected static function booted(): void
-    {
-        static::saving(function (Evaluation $evaluation) {
-            $evaluation->evaluator_score = $evaluation->calculateScore();
-        });
-
-        static::saved(function (Evaluation $evaluation) {
-            // Trigger rank recalculation
-            Rank::updateForStudent($evaluation->organization_id, $evaluation->student_id);
-        });
+        return $query->where('year', $year);
     }
 }

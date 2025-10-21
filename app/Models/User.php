@@ -19,7 +19,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'department_id',
+        'organization_id',
         'school_number',
         'name',
         'email',
@@ -50,10 +50,10 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the department that owns this user.
+     * Get the organization that owns this user.
      */
-    public function department(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function organization(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(Organization::class);
     }
 }

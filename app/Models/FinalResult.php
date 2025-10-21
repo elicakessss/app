@@ -11,7 +11,7 @@ class FinalResult extends Model
     use HasFactory;
 
     protected $fillable = [
-        'organization_id',
+        'evaluation_id',
         'student_id',
         'final_score',
         'rank',
@@ -24,9 +24,9 @@ class FinalResult extends Model
         'breakdown' => 'array',
     ];
 
-    public function organization(): BelongsTo
+    public function evaluation(): BelongsTo
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(Evaluation::class);
     }
 
     public function student(): BelongsTo
@@ -37,15 +37,15 @@ class FinalResult extends Model
     /**
      * Update or create final result for a student
      */
-    public static function updateForStudent(int $organizationId, int $studentId): void
+    public static function updateForStudent(int $evaluationId, int $studentId): void
     {
-        $evaluations = Evaluation::where('organization_id', $organizationId)
+        $evaluationScores = EvaluationScore::where('evaluation_id', $evaluationId)
             ->where('student_id', $studentId)
             ->get()
             ->keyBy('evaluator_type');
 
         $finalResult = self::firstOrCreate([
-            'organization_id' => $organizationId,
+            'evaluation_id' => $evaluationId,
             'student_id' => $studentId,
         ]);
 
@@ -62,8 +62,8 @@ class FinalResult extends Model
         ];
 
         foreach ($weights as $evaluatorType => $weight) {
-            if (isset($evaluations[$evaluatorType])) {
-                $score = $evaluations[$evaluatorType]->evaluator_score;
+            if (isset($evaluationScores[$evaluatorType])) {
+                $score = $evaluationScores[$evaluatorType]->evaluator_score;
                 $breakdown[$evaluatorType] = [
                     'score' => $score,
                     'weight' => $weight,
@@ -75,9 +75,9 @@ class FinalResult extends Model
         }
 
         // Determine if finalized (all required evaluations present)
-        $isFinalized = isset($evaluations['adviser']) && 
-                      isset($evaluations['peer']) && 
-                      isset($evaluations['self']);
+        $isFinalized = isset($evaluationScores['adviser']) && 
+                      isset($evaluationScores['peer']) && 
+                      isset($evaluationScores['self']);
 
         if ($isFinalized) {
             $finalScore = round($totalWeightedScore, 3);

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Student\Widgets;
 
-use App\Models\OrganizationPeerEvaluator;
+use App\Models\EvaluationPeerEvaluator;
 use App\Models\Evaluation;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
@@ -61,10 +61,10 @@ class PeerEvaluationsTable extends BaseWidget
     {
         $studentId = auth('student')->id();
         
-        return OrganizationPeerEvaluator::query()
+        return EvaluationPeerEvaluator::query()
             ->where('evaluator_student_id', $studentId)
             ->with([
-                'organization.department',
+                'evaluation.organization.department',
                 'evaluateeStudent'
             ]);
     }
@@ -73,8 +73,8 @@ class PeerEvaluationsTable extends BaseWidget
     {
         $studentId = auth('student')->id();
         
-        $evaluation = Evaluation::where([
-            'organization_id' => $assignment->organization_id,
+        $evaluation = \App\Models\EvaluationScore::where([
+            'evaluation_id' => $assignment->evaluation_id,
             'student_id' => $assignment->evaluatee_student_id,
             'evaluator_type' => 'peer',
             'evaluator_id' => $studentId
@@ -85,8 +85,8 @@ class PeerEvaluationsTable extends BaseWidget
 
     protected function getPeerEvaluationUrl($assignment): string
     {
-        return route('filament.admin.resources.organizations.evaluate-student', [
-            'organization' => $assignment->organization_id,
+        return route('filament.admin.resources.evaluations.evaluate-student', [
+            'record' => $assignment->evaluation_id,
             'student' => $assignment->evaluatee_student_id,
             'type' => 'peer'
         ]);

@@ -19,7 +19,7 @@ class Rank extends Model
     protected $table = 'ranks';
 
     protected $fillable = [
-        'organization_id',
+        'evaluation_id',
         'student_id',
         'final_score',
         'rank',
@@ -54,9 +54,9 @@ class Rank extends Model
     // RELATIONSHIPS
     // ========================================
 
-    public function organization(): BelongsTo
+    public function evaluation(): BelongsTo
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(Evaluation::class);
     }
 
     public function student(): BelongsTo
@@ -71,38 +71,41 @@ class Rank extends Model
     /**
      * Update or create final result for a student
      */
-    public static function updateForStudent(int $organizationId, int $studentId): void
+    public static function updateForStudent(int $evaluationId, int $studentId): void
     {
-        $evaluations = self::getEvaluations($organizationId, $studentId);
+        $evaluationScores = EvaluationScore::where('evaluation_id', $evaluationId)
+            ->where('student_id', $studentId)
+            ->get()
+            ->keyBy('evaluator_type');
         
-        $finalResult = self::firstOrCreate([
-            'organization_id' => $organizationId,
+        $rank = self::firstOrCreate([
+            'evaluation_id' => $evaluationId,
             'student_id' => $studentId,
         ]);
 
         // Calculate weighted breakdown
-        $breakdown = self::calculateBreakdown($evaluations);
+        $breakdown = self::calculateBreakdown($evaluationScores);
         
         // Determine completion status
-        $isFinalized = self::isFinalized($evaluations);
+        $isFinalized = self::isFinalized($evaluationScores);
         
         // Calculate final score and rank
-        [$finalScore, $rank, $status] = self::computeFinalRanking($breakdown, $isFinalized);
+        [$finalScore, $rankTier, $status] = self::computeFinalRanking($breakdown, $isFinalized);
 
-        $finalResult->update([
+        $rank->update([
             'final_score' => $finalScore,
-            'rank' => $rank,
+            'rank' => $rankTier,
             'status' => $status,
             'breakdown' => $breakdown,
         ]);
     }
 
     /**
-     * Get evaluations for the student by evaluator type
+     * Get evaluation scores for the student by evaluator type
      */
-    protected static function getEvaluations(int $organizationId, int $studentId): \Illuminate\Support\Collection
+    protected static function getEvaluationScores(int $evaluationId, int $studentId): \Illuminate\Support\Collection
     {
-        return Evaluation::where('organization_id', $organizationId)
+        return EvaluationScore::where('evaluation_id', $evaluationId)
             ->where('student_id', $studentId)
             ->get()
             ->keyBy('evaluator_type');
@@ -111,13 +114,13 @@ class Rank extends Model
     /**
      * Calculate weighted score breakdown for each evaluator type
      */
-    protected static function calculateBreakdown(\Illuminate\Support\Collection $evaluations): array
+    protected static function calculateBreakdown(\Illuminate\Support\Collection $evaluationScores): array
     {
         $breakdown = [];
 
         foreach (self::WEIGHTS as $evaluatorType => $weight) {
-            if (isset($evaluations[$evaluatorType])) {
-                $score = $evaluations[$evaluatorType]->evaluator_score;
+            if (isset($evaluationScores[$evaluatorType])) {
+                $score = $evaluationScores[$evaluatorType]->evaluator_score;
                 $breakdown[$evaluatorType] = [
                     'score' => $score,
                     'weight' => $weight,
@@ -130,13 +133,13 @@ class Rank extends Model
     }
 
     /**
-     * Check if all required evaluations are present
+     * Check if all required evaluation scores are present
      */
-    protected static function isFinalized(\Illuminate\Support\Collection $evaluations): bool
+    protected static function isFinalized(\Illuminate\Support\Collection $evaluationScores): bool
     {
-        return isset($evaluations['adviser']) && 
-               isset($evaluations['peer']) && 
-               isset($evaluations['self']);
+        return isset($evaluationScores['adviser']) && 
+               isset($evaluationScores['peer']) && 
+               isset($evaluationScores['self']);
     }
 
     /**
@@ -150,9 +153,9 @@ class Rank extends Model
 
         $totalWeightedScore = array_sum(array_column($breakdown, 'weighted_score'));
         $finalScore = round($totalWeightedScore, 3);
-        $rank = self::calculateRank($finalScore);
+        $rankTier = self::calculateRank($finalScore);
 
-        return [$finalScore, $rank, 'finalized'];
+        return [$finalScore, $rankTier, 'finalized'];
     }
 
     /**

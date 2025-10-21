@@ -1,87 +1,30 @@
 <?php
+
 namespace App\Filament\Admin\Resources\Organizations;
-use Filament\Infolists;
-use Filament\Schemas\Schema;
 
 use App\Filament\Admin\Resources\Organizations\Pages\CreateOrganization;
 use App\Filament\Admin\Resources\Organizations\Pages\EditOrganization;
 use App\Filament\Admin\Resources\Organizations\Pages\ListOrganizations;
-use App\Filament\Admin\Resources\Organizations\Pages\ViewOrganization;
-use App\Filament\Admin\Resources\Organizations\Pages;
-use App\Filament\Admin\Resources\Organizations\RelationManagers;
 use App\Filament\Admin\Resources\Organizations\Schemas\OrganizationForm;
 use App\Filament\Admin\Resources\Organizations\Tables\OrganizationsTable;
 use App\Models\Organization;
 use BackedEnum;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\RepeatableEntry;
+use UnitEnum;
 
 class OrganizationResource extends Resource
 {
-    public static function infolist(Schema $schema): Schema
-    {
-        return $schema->components([
-            Section::make('Organization Details')
-                ->schema([
-                    Grid::make(2)->schema([
-                        TextEntry::make('name')
-                            ->label('Organization Name'),
-                        TextEntry::make('year')
-                            ->label('Academic Year')
-                            ->formatStateUsing(fn ($state) => $state . '-' . ($state + 1)),
-                    ]),
-                    Grid::make(2)->schema([
-                        TextEntry::make('user.name')
-                            ->label('Adviser'),
-                        TextEntry::make('department.name')
-                            ->label('Department'),
-                    ]),
-                ]),
-
-            Section::make('Peer Evaluator Details')
-                ->schema([
-                    RepeatableEntry::make('peer_evaluators')
-                        ->state(function ($record) {
-                            return \App\Models\OrganizationPeerEvaluator::where('organization_id', $record->id)
-                                ->with('evaluatorStudent')
-                                ->get()
-                                ->groupBy('evaluator_student_id')
-                                ->map(function ($assignments, $evaluatorId) {
-                                    $evaluator = $assignments->first()->evaluatorStudent;
-                                    return [
-                                        'name' => $evaluator ? $evaluator->name : 'Unknown',
-                                        'evaluatee_count' => $assignments->count(),
-                                    ];
-                                })->values()->toArray();
-                        })
-                        ->schema([
-                            Grid::make(2)->schema([
-                                TextEntry::make('name')
-                                    ->label('Peer Evaluator'),
-                                TextEntry::make('evaluatee_count')
-                                    ->label('Evaluatee Count'),
-                            ]),
-                        ]),
-                ]),
-        ]);
-    }
-    public static function form(Schema $schema): Schema
-    {
-        return OrganizationForm::configure($schema);
-    }
     protected static ?string $model = Organization::class;
 
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office-2';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office';
 
-    protected static ?int $navigationSort = 30;
+    protected static string|UnitEnum|null $navigationGroup = 'System Settings';
 
-    protected static ?string $navigationLabel = 'Evaluations';
+    protected static ?int $navigationSort = 10;
+
+    protected static ?string $navigationLabel = 'Organizations';
 
     protected static ?string $modelLabel = 'Organization';
 
@@ -91,9 +34,7 @@ class OrganizationResource extends Resource
 
     public static function canAccess(): bool
     {
-        // Allow access for admin role or users with manage-organizations permission
-        return auth()->user()?->hasRole('Admin') || 
-               auth()->user()?->can('manage organizations') ?? false;
+        return auth()->user()?->hasRole('Admin') ?? false;
     }
 
     public static function canViewAny(): bool
@@ -113,34 +54,17 @@ class OrganizationResource extends Resource
 
     public static function canDelete($record): bool
     {
-        return auth()->user()?->hasRole('Admin') ?? false; // Only admin can delete
+        return static::canAccess();
     }
 
-    // Removed form() method to ensure InfoList is used for the view page
+    public static function form(Schema $schema): Schema
+    {
+        return OrganizationForm::configure($schema);
+    }
 
     public static function table(Table $table): Table
     {
         return OrganizationsTable::configure($table);
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        $query = parent::getEloquentQuery()->with(['user', 'department']);
-        
-        // Filter organizations by user's department
-        $user = auth()->user();
-        if ($user && $user->department_id) {
-            $query->where('department_id', $user->department_id);
-        }
-        
-        return $query;
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\StudentsRelationManager::class,
-        ];
     }
 
     public static function getPages(): array
@@ -148,28 +72,7 @@ class OrganizationResource extends Resource
         return [
             'index' => ListOrganizations::route('/'),
             'create' => CreateOrganization::route('/create'),
-            'view' => ViewOrganization::route('/{record}'),
             'edit' => EditOrganization::route('/{record}/edit'),
-            'evaluate-student' => Pages\EvaluateStudent::route('/{organization}/evaluate/{student}/{type}'),
-        ];
-    }
-
-    public static function getGlobalSearchEloquentQuery(): \Illuminate\Database\Eloquent\Builder
-    {
-        return parent::getGlobalSearchEloquentQuery()->with(['students']);
-    }
-
-    public static function getGloballySearchableAttributes(): array
-    {
-        return ['name', 'description', 'department.name'];
-    }
-
-    public static function getGlobalSearchResultDetails($record): array
-    {
-        return [
-            'Department' => $record->department->name,
-            'Year' => $record->year,
-            'Students' => $record->students->count(),
         ];
     }
 }
