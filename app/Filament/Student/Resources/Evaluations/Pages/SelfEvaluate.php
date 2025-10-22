@@ -31,25 +31,17 @@ class SelfEvaluate extends Page implements HasForms
     public ?EvaluationScore $evaluationRecord = null; // Per-student evaluation answers
     public array $data = [];
 
-    public function mount(Organization $organization): void
+    public function mount(Evaluation $evaluation): void
     {
         $studentId = auth('student')->id();
 
-        // Find the latest evaluation event for this organization that includes this student
-        $evaluation = Evaluation::where('organization_id', $organization->id)
-            ->whereHas('students', function ($q) use ($studentId) {
-                $q->where('students.id', $studentId);
-            })
-            ->orderByDesc('year')
-            ->first();
-
-        if (! $evaluation) {
-            // Student is not enrolled in any evaluation for this organization
+        // Check if the student is enrolled in this evaluation
+        if (! $evaluation->students()->where('students.id', $studentId)->exists()) {
             $this->redirect(route('filament.student.resources.evaluations.index'));
             return;
         }
 
-        $this->organization = $organization;
+        $this->organization = $evaluation->organization;
         $this->evaluationEvent = $evaluation;
         $this->loadExistingEvaluation();
     }
@@ -78,12 +70,15 @@ class SelfEvaluate extends Page implements HasForms
 
     public function getTitle(): string|Htmlable
     {
-        return "Self Evaluation - {$this->organization->name}";
+        $studentName = auth('student')->user()->name ?? '';
+        return "Self Evaluation for {$studentName}";
     }
 
     public function getSubheading(): string|Htmlable|null
     {
-        return "Complete your self-evaluation for {$this->organization->name}";
+        $orgName = $this->organization->name ?? 'Organization';
+        $yearRange = $this->evaluationEvent->year . '-' . ($this->evaluationEvent->year + 1);
+        return "Organization: {$orgName} ({$yearRange})";
     }
 
     public function form(Schema $schema): Schema
@@ -139,20 +134,21 @@ class SelfEvaluate extends Page implements HasForms
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('save')
+        $actions = [];
+        if (! $this->evaluationRecord) {
+            $actions[] = Action::make('save')
                 ->label('Save Self Evaluation')
                 ->action('save')
                 ->keyBindings(['mod+s'])
                 ->color('success')
-                ->icon('heroicon-o-check'),
-                
-            Action::make('back')
-                ->label('Back to Organizations')
-                ->url(route('filament.student.resources.evaluations.index'))
-                ->color('gray')
-                ->icon('heroicon-o-arrow-left'),
-        ];
+                ->icon('heroicon-o-check');
+        }
+        $actions[] = Action::make('back')
+            ->label('Back to Evaluations')
+            ->url(route('filament.student.resources.evaluations.index'))
+            ->color('gray')
+            ->icon('heroicon-o-arrow-left');
+        return $actions;
     }
 
     /**

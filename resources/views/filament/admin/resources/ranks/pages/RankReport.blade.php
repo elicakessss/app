@@ -92,7 +92,7 @@
                                 @foreach($strandQuestions as $questionKey => $questionText)
                                     <tr class="hover:bg-gray-50">
                                         <td class="border border-gray-400 px-4 py-3 text-sm">
-                                            {{ $questionText }}
+                                            {{ $questionText['text'] ?? '' }}
                                         </td>
                                         
                                         {{-- Adviser Score --}}

@@ -13,4 +13,10 @@ class CreateOrganization extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
+
+    
+    public function getSubheading(): ?string
+    {
+        return 'Fill out the form to create a new organization in the system.';
+    }
 }

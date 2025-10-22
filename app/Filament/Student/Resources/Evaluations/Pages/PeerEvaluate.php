@@ -28,29 +28,23 @@ class PeerEvaluate extends Page implements HasForms
     public Organization $organization;
     public Student $targetStudent;
     public ?Evaluation $evaluation = null;
+    public ?EvaluationScore $evaluationRecord = null;
     public array $data = [];
 
     /**
-     * Mount the page and verify student belongs to organization
+     * Mount the page and verify student belongs to evaluation
      */
-    public function mount(Organization $organization, Student $student): void
+    public function mount(Evaluation $evaluation, Student $student): void
     {
         $studentId = auth('student')->id();
 
-        // Find an evaluation for this organization that includes the current student as a participant
-        $evaluation = Evaluation::where('organization_id', $organization->id)
-            ->whereHas('students', function ($q) use ($studentId) {
-                $q->where('students.id', $studentId);
-            })
-            ->orderByDesc('year')
-            ->first();
-
-        if (! $evaluation) {
+        // Check if the current student is a participant in this evaluation
+        if (! $evaluation->students()->where('students.id', $studentId)->exists()) {
             $this->redirect(route('filament.student.resources.evaluations.index'));
             return;
         }
 
-        $this->organization = $organization;
+        $this->organization = $evaluation->organization;
         $this->evaluation = $evaluation;
         $this->targetStudent = $student;
         $this->loadExistingEvaluation();
@@ -83,7 +77,7 @@ class PeerEvaluate extends Page implements HasForms
      */
     public function getTitle(): string|Htmlable
     {
-        return "Peer Evaluation - {$this->targetStudent->name} ({$this->organization->name})";
+        return "Peer Evaluation for {$this->targetStudent->name}";
     }
 
     /**
@@ -91,7 +85,9 @@ class PeerEvaluate extends Page implements HasForms
      */
     public function getSubheading(): string|Htmlable|null
     {
-        return "Complete your peer evaluation for {$this->targetStudent->name} in {$this->organization->name}";
+        $orgName = $this->organization->name ?? 'Organization';
+        $yearRange = $this->evaluation->year . '-' . ($this->evaluation->year + 1);
+        return "Organization: {$orgName} ({$yearRange})";
     }
 
     /**
@@ -153,19 +149,21 @@ class PeerEvaluate extends Page implements HasForms
      */
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('save')
+        $actions = [];
+        if (! $this->evaluationRecord) {
+            $actions[] = Action::make('save')
                 ->label('Save Peer Evaluation')
                 ->action('save')
                 ->keyBindings(['mod+s'])
                 ->color('success')
-                ->icon('heroicon-o-check'),
-            Action::make('back')
-                ->label('Back to Organizations')
-                ->url(route('filament.student.resources.evaluations.index'))
-                ->color('gray')
-                ->icon('heroicon-o-arrow-left'),
-        ];
+                ->icon('heroicon-o-check');
+        }
+        $actions[] = Action::make('back')
+            ->label('Back to Evaluations')
+            ->url(route('filament.student.resources.evaluations.index'))
+            ->color('gray')
+            ->icon('heroicon-o-arrow-left');
+        return $actions;
     }
 
     /**

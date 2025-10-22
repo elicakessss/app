@@ -19,13 +19,20 @@ class ViewRank extends ViewRecord
     {
         $record = $this->getRecord();
         
-        // Get all evaluations for this student/organization
-        $evaluations = Evaluation::where('organization_id', $record->organization_id)
-            ->where('student_id', $record->student_id)
-            ->get()
-            ->keyBy('evaluator_type');
+        // Get all evaluation scores for this student in the correct evaluation (by organization and year)
+        $evaluation = \App\Models\Evaluation::where('organization_id', $record->organization_id)
+            ->where('year', $record->year)
+            ->first();
 
-        $questions = Evaluation::getAllQuestions();
+        $evaluations = collect();
+        if ($evaluation) {
+            $evaluations = \App\Models\EvaluationScore::where('evaluation_id', $evaluation->id)
+                ->where('student_id', $record->student_id)
+                ->get()
+                ->keyBy('evaluator_type');
+        }
+
+        $questions = \App\Models\EvaluationScore::getAllQuestions();
         $groupedQuestions = $this->groupQuestions($questions);
 
         return [

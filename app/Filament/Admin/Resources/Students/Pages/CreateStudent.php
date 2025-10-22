@@ -13,4 +13,10 @@ class CreateStudent extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
+
+    
+    public function getSubheading(): ?string
+    {
+        return 'Fill out the form to create a new student account in the system.';
+    }
 }

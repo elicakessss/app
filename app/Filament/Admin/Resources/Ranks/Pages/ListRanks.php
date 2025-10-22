@@ -15,4 +15,9 @@ class ListRanks extends ListRecords
             // No actions needed - read-only resource
         ];
     }
+
+    public function getSubheading(): ?string
+    {
+        return 'Review student ranks based on evaluation scores.';
+    }
 }

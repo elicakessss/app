@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Students\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -19,19 +20,21 @@ class StudentForm
     {
         return $schema
             ->components([
-
+                Section::make('Student Information')
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->components([
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255)
-                    ->label('Full Name'),
+                    ->label('Full Name')
+                    ->columnSpan(2),
 
                 TextInput::make('school_number')
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(20)
-                    ->label('School Number')
-                    ->placeholder('e.g., 2024-001234')
-                    ->helperText('Unique identifier for the student'),
+                    ->label('School Number'),
                         
                 TextInput::make('email')
                     ->email()
@@ -56,6 +59,7 @@ class StudentForm
                     ->dehydrated(false)
                     ->label('Confirm Password')
                     ->visible(fn (string $operation): bool => $operation === 'create' || filled(request()->input('data.password'))),
-            ]);
+                    ]),
+        ]);
     }
 }

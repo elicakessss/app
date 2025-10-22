@@ -14,7 +14,7 @@ class UserForm
     {
         return $schema
             ->components([
-                Section::make('User Details')
+                Section::make('User Information')
                     ->columns(2)
                     ->columnSpanFull()
                     ->components([
@@ -51,6 +51,7 @@ class UserForm
                             ->preload()
                             ->placeholder('Select organization')
                             ->columnSpan(2),
+                    
 
                         TextInput::make('password')
                             ->password()

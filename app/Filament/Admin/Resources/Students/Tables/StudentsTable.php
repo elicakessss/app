@@ -29,7 +29,8 @@ class StudentsTable
                     ->circular()
                     ->size(50)
                     ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF')
-                    ->grow(false),
+                    ->grow(false)
+                    ->alignCenter(),
 
                 TextColumn::make('name')
                     ->weight('medium')
@@ -51,13 +52,9 @@ class StudentsTable
                     ->dateTime()
                     ->label('Registered'),
             ])
-            ->filters([
-                //
-            ])
             ->recordUrl(
                 fn (Student $record): string => route('filament.admin.resources.students.edit', $record),
             )
-            // Bulk actions removed
             ->emptyStateHeading('No students yet')
             ->emptyStateDescription('Students will appear here once they are registered.');
     }

@@ -237,7 +237,12 @@ class EvaluationScore extends Model
 
         static::saved(function (EvaluationScore $evaluationScore) {
             // Trigger rank recalculation
-            Rank::updateForStudent($evaluationScore->evaluation_id, $evaluationScore->student_id);
+            $organizationId = $evaluationScore->evaluation->organization_id;
+            Rank::updateForStudent(
+                $evaluationScore->evaluation_id,
+                $evaluationScore->student_id,
+                $organizationId // Pass organization_id (formerly department)
+            );
         });
     }
 }

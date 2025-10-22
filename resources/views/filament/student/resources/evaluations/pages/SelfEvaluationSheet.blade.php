@@ -1,21 +1,5 @@
 <x-filament-panels::page>
     <div class="space-y-6">
-        {{-- Page Header --}}
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">
-                Self Evaluation - {{ $organization->name ?? 'N/A' }}
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                <p><strong>Organization:</strong> {{ $organization->name ?? 'N/A' }}</p>
-                <p><strong>Department:</strong> {{ $organization->department->name ?? 'N/A' }}</p>
-                <p><strong>Academic Year:</strong> {{ $organization->year ?? 'N/A' }}</p>
-            </div>
-            <div class="mt-4 p-4 bg-blue-50 rounded-lg">
-                <p class="text-sm text-blue-800">
-                    <strong>Instructions:</strong> Please evaluate yourself honestly based on your leadership performance in this organization. Your responses will contribute to your final leadership ranking.
-                </p>
-            </div>
-        </div>
 
         {{-- Evaluation Form --}}
         <form wire:submit="save">
@@ -88,7 +72,7 @@
                                                     wire:model="data.{{ $questionKey }}"
                                                     class="w-4 h-4 text-blue-600"
                                                     required
-                                                    @if($this->evaluation) disabled @endif
+                                                    @if($this->evaluationRecord) disabled @endif
                                                 >
                                             </td>
                                         @endfor

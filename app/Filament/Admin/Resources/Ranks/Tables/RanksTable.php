@@ -6,6 +6,7 @@ use App\Models\Organization;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ColumnGroup;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\Layout\Split;
@@ -22,50 +23,48 @@ class RanksTable
     {
         return $table
             ->columns([
-                Split::make([
+                ColumnGroup::make('Student', [
                     ImageColumn::make('student.avatar')
                         ->circular()
                         ->size(50)
                         ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->student->name) . '&color=7F9CF5&background=EBF4FF')
-                        ->grow(false),
-                    
-                    Stack::make([
-                        TextColumn::make('student.name')
-                            ->weight('medium')
-                            ->searchable(),
-                        
-                        TextColumn::make('position')
-                            ->getStateUsing(function ($record) {
-                                $pivot = $record->student->organizations()
-                                    ->where('organization_id', $record->organization_id)
-                                    ->first()?->pivot;
-                                return $pivot?->position ?? 'Member';
-                            })
-                            ->color('gray')
-                            ->size('sm'),
-                    ]),
-                    
-                    Stack::make([
-                        TextColumn::make('organization.name')
-                            ->searchable(),
-                        
-                        TextColumn::make('organization.year')
-                            ->formatStateUsing(function ($state) {
-                                if (!$state) return 'N/A';
-                                $nextYear = $state + 1;
-                                return "{$state}-{$nextYear}";
-                            }),
-                    ]),
-                            
+                        ->grow(false)
+                        ->label(' ')
+                        ->alignCenter(),
+                    TextColumn::make('student.name')
+                        ->weight('medium')
+                        ->searchable(),
+                    TextColumn::make('position')
+                        ->getStateUsing(function ($record) {
+                            $pivot = $record->student->evaluations()
+                                ->where('evaluation_id', $record->evaluation_id)
+                                ->first()?->pivot;
+                            return $pivot?->position ?? 'Member';
+                        })
+                        ->color('gray')
+                        ->size('sm'),
+                ]),
+                ColumnGroup::make('Organization', [
+                    TextColumn::make('organization.name')
+                        ->searchable(),
+                    TextColumn::make('evaluation.year')
+                        ->label('Evaluation Year')
+                        ->formatStateUsing(function ($state) {
+                            if (!$state) return 'N/A';
+                            $nextYear = $state + 1;
+                            return "{$state}-{$nextYear}";
+                        }),
+                ]),
+                ColumnGroup::make('Results', [
                     TextColumn::make('final_score')
-                        ->numeric(decimalPlaces: 3)
+                        ->numeric(decimalPlaces: 2)
                         ->placeholder('Pending')
-                        ->label('Final Score'),
-                        
+                        ->label('Final Score')
+                        ->alignCenter(),
                     BadgeColumn::make('rank')
                         ->colors([
                             'warning' => 'gold',
-                            'gray' => 'silver', 
+                            'gray' => 'silver',
                             'orange' => 'bronze',
                             'danger' => 'none',
                         ])
@@ -76,15 +75,20 @@ class RanksTable
                             'none' => 'None',
                             default => 'Pending'
                         })
-                        ->label('Rank'),
-                        
+                        ->label('Rank')
+                        ->alignCenter(),
+
+                ]),
+                ColumnGroup::make('Status', [
+
                     BadgeColumn::make('status')
                         ->colors([
                             'success' => 'finalized',
                             'warning' => 'pending',
                         ])
                         ->formatStateUsing(fn (string $state): string => ucfirst($state))
-                        ->label('Status'),
+                        ->label(' ')
+                        ->alignCenter(),
                 ]),
             ])
             ->filters([
@@ -108,14 +112,14 @@ class RanksTable
                     
                 SelectFilter::make('year')
                     ->options(function () {
-                        return Organization::distinct('year')
+                        return \App\Models\Evaluation::distinct('year')
                             ->orderBy('year', 'desc')
                             ->pluck('year', 'year')
                             ->toArray();
                     })
                     ->query(function ($query, $data) {
                         if ($data['value']) {
-                            return $query->whereHas('organization', function ($q) use ($data) {
+                            return $query->whereHas('evaluation', function ($q) use ($data) {
                                 $q->where('year', $data['value']);
                             });
                         }

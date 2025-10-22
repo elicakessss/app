@@ -21,15 +21,14 @@ class Rank extends Model
     protected $fillable = [
         'evaluation_id',
         'student_id',
+        'organization_id',
         'final_score',
         'rank',
         'status',
-        'breakdown',
     ];
 
     protected $casts = [
         'final_score' => 'decimal:3',
-        'breakdown' => 'array',
     ];
 
     // ========================================
@@ -62,6 +61,14 @@ class Rank extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    /**
+     * Get the organization for this rank.
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     // ========================================
@@ -97,7 +104,6 @@ class Rank extends Model
             'final_score' => $finalScore,
             'rank' => $rankTier,
             'status' => $status,
-            'breakdown' => $breakdown,
         ]);
     }
 

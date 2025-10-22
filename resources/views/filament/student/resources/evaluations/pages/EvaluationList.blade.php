@@ -51,7 +51,7 @@
 						@if($task['task_type'] === 'Self-Evaluation')
 							<x-filament::button 
 								tag="a"
-								:href="route('filament.student.resources.evaluations.self-evaluate', ['organization' => $task['organization_id']])"
+								:href="route('filament.student.resources.evaluations.self-evaluate', ['evaluation' => $task['evaluation_id']])"
 								size="sm"
 								:icon="$task['status'] === 'Completed' ? 'heroicon-s-eye' : 'heroicon-s-pencil-square'">
 								@if($task['status'] === 'Completed')
@@ -63,7 +63,7 @@
 						@else
 							<x-filament::button 
 								tag="a"
-								:href="route('filament.student.resources.evaluations.peer-evaluate', ['organization' => $task['organization_id'], 'student' => $task['target_id']])"
+								:href="route('filament.student.resources.evaluations.peer-evaluate', ['evaluation' => $task['evaluation_id'], 'student' => $task['target_id']])"
 								size="sm"
 								:icon="$task['status'] === 'Completed' ? 'heroicon-s-eye' : 'heroicon-s-pencil-square'">
 								@if($task['status'] === 'Completed')

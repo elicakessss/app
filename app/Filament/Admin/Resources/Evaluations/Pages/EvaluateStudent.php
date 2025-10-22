@@ -144,8 +144,14 @@ class EvaluateStudent extends Page implements HasForms
                 ->modalHeading('Submit Evaluation?')
                 ->modalDescription('Are you sure you want to submit this evaluation? You will not be able to edit it afterwards.')
                 ->keyBindings(['mod+s'])
-                ->color('success');
+                ->color('success')
+                ->icon('heroicon-o-check');
         }
+        $actions[] = Action::make('back')
+            ->label('Back to Evaluation')
+            ->url(route('filament.admin.resources.evaluations.view', ['record' => $this->evaluation->id]))
+            ->color('gray')
+            ->icon('heroicon-o-arrow-left');
         return $actions;
     }
 }

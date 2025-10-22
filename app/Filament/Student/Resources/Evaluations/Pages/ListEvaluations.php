@@ -43,7 +43,7 @@ class ListEvaluations extends Page
         }
 
         $tasks = collect();
-        $student = Student::with(['evaluations.organization.department'])->find($studentId);
+        $student = Student::with(['evaluations.organization'])->find($studentId);
         
         if (!$student) {
             return collect([]);
@@ -72,7 +72,7 @@ class ListEvaluations extends Page
 
         // Peer evaluation tasks
         $peerAssignments = EvaluationPeerEvaluator::where('evaluator_student_id', $studentId)
-            ->with(['evaluation.organization.department', 'evaluateeStudent'])
+            ->with(['evaluation.organization', 'evaluateeStudent'])
             ->get();
 
         foreach ($peerAssignments as $assignment) {
