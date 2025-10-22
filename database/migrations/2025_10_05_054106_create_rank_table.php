@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('ranks', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('evaluation_id')->constrained('evaluations')->onDelete('cascade');
             $table->foreignId('organization_id')->constrained()->onDelete('cascade');
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->decimal('final_score', 5, 3)->nullable(); // Final computed score
@@ -21,8 +22,8 @@ return new class extends Migration
             $table->json('breakdown')->nullable(); // Per evaluator contribution breakdown
             $table->timestamps();
             
-            // Ensure only one final result per student per organization
-            $table->unique(['organization_id', 'student_id']);
+            // Ensure only one final result per student per organization and evaluation
+            $table->unique(['evaluation_id', 'organization_id', 'student_id']);
         });
     }
 

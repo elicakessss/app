@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Evaluations\Tables;
 
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Actions\CreateAction;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\Layout\Split;
@@ -19,36 +20,43 @@ class EvaluationsTable
         return $table
             ->columns([
                 Split::make([
-                    ImageColumn::make('logo')
+                    // Organization image
+                    ImageColumn::make('organization.logo')
                         ->circular()
                         ->size(80)
                         ->defaultImageUrl(function ($record) {
-                            // Prefer evaluation logo; fall back to evaluation name, then organization name
-                            $name = $record->name ?? ($record->organization->name ?? 'Evaluation');
-                            return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&color=7F9CF5&background=EBF4FF';
+                            $orgName = $record->organization->name ?? 'Organization';
+                            return 'https://ui-avatars.com/api/?name=' . urlencode($orgName) . '&color=7F9CF5&background=EBF4FF';
                         })
                         ->grow(false),
-                    
+
                     Stack::make([
+                        // Organization name above evaluation name and adviser
+                        TextColumn::make('organization.name')
+                            ->weight(FontWeight::Bold)
+                            ->size('md')
+                            ->label('Organization')
+                            ->color('emerald'),
+
                         TextColumn::make('name')
                             ->weight(FontWeight::Bold)
                             ->size('lg')
                             ->searchable()
                             ->wrap(),
-                        
+
                         TextColumn::make('user.name')
                             ->label('Adviser')
                             ->color('gray')
                             ->prefix('Adviser: ')
                             ->size('sm'),
-                        
+
                         Split::make([
                             TextColumn::make('year')
                                 ->badge()
                                 ->color('primary')
                                 ->formatStateUsing(fn ($state) => $state . '-' . ($state + 1))
                                 ->grow(false),
-                            
+
                             TextColumn::make('students_count')
                                 ->counts('students')
                                 ->badge()

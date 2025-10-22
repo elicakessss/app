@@ -22,8 +22,7 @@ class PermissionsTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
-                    ->sortable()
-                    ->weight('bold'),
+                    ->sortable(),
                 TextColumn::make('roles_count')
                     ->label('Roles')
                     ->counts('roles')

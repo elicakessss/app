@@ -16,4 +16,9 @@ class ListOrganizations extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    public function getSubheading(): ?string
+    {
+        return 'Manage all organizations in the system';
+    }
 }

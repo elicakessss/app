@@ -30,24 +30,33 @@ class EvaluationResource extends Resource
         return $schema->components([
             Section::make('Evaluation Details')
                 ->schema([
-                    Grid::make(2)->schema([
-                        TextEntry::make('name')
-                            ->label('Evaluation Name'),
-                        TextEntry::make('year')
-                            ->label('Academic Year')
-                            ->formatStateUsing(fn ($state) => $state . '-' . ($state + 1)),
-                    ]),
-                    Grid::make(2)->schema([
-                        TextEntry::make('user.name')
-                            ->label('Adviser'),
-                        TextEntry::make('organization.name')
-                            ->label('Organization'),
+                    Grid::make(5)->schema([
+                        ImageEntry::make('organization.logo')
+                            ->circular()
+                            ->size(100)
+                            ->hiddenLabel()
+                            ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->organization->name ?? 'Organization') . '&color=7F9CF5&background=EBF4FF')
+                            ->columnSpan(1),
+                        Grid::make(1)->schema([
+                            TextEntry::make('organization.name')
+                                ->hiddenLabel()
+                                ->weight('bold'),
+                            TextEntry::make('user.name')
+                                ->label('Adviser:')
+                                ->inlineLabel(),
+                            TextEntry::make('year')
+                                ->label('Academic Year:')
+                                ->formatStateUsing(fn ($state) => $state . '-' . ($state + 1))
+                                ->inlineLabel(),
+                        ])->columnSpan(4),
                     ]),
                 ]),
 
             Section::make('Peer Evaluator Details')
                 ->schema([
                     RepeatableEntry::make('peer_evaluators')
+                        ->label('Nigga') 
+                        ->hiddenLabel()
                         ->state(function ($record) {
                             return EvaluationPeerEvaluator::where('evaluation_id', $record->id)
                                 ->with('evaluatorStudent')
@@ -64,9 +73,11 @@ class EvaluationResource extends Resource
                         ->schema([
                             Grid::make(2)->schema([
                                 TextEntry::make('name')
-                                    ->label('Peer Evaluator'),
+                                    ->label('Evaluator:')
+                                    ->inlineLabel(),
                                 TextEntry::make('evaluatee_count')
-                                    ->label('Evaluatee Count'),
+                                    ->label('Evaluatees:')
+                                    ->inlineLabel(),
                             ]),
                         ]),
                 ]),
@@ -128,10 +139,10 @@ class EvaluationResource extends Resource
     {
         $query = parent::getEloquentQuery()->with(['user', 'organization']);
         
-        // Filter evaluations by user's department (via organization)
+        // Filter evaluations by user's organization
         $user = auth()->user();
-        if ($user && $user->department_id) {
-            $query->whereHas('organization', fn($q) => $q->where('department_id', $user->department_id));
+        if ($user && $user->organization_id) {
+            $query->where('organization_id', $user->organization_id);
         }
         
         return $query;

@@ -2,9 +2,6 @@
 
 namespace App\Filament\Admin\Resources\Users\Schemas;
 
-use App\Models\Role;
-use App\Models\Department;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -17,54 +14,57 @@ class UserForm
     {
         return $schema
             ->components([
-                Section::make('User Information')
-                    ->schema([
-                        Select::make('department_id')
-                            ->label('Department')
-                            ->relationship('department', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->placeholder('Select department')
-                            ->helperText('User will only see organizations from this department'),
+                Section::make('User Details')
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->components([
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(2),
+
                         TextInput::make('school_number')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(20)
-                            ->label('School Number')
-                            ->placeholder('e.g., 2024-001234')
-                            ->helperText('Unique identifier for the user'),
-                        TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
+                            ->label('School ID Number'),
+
                         TextInput::make('email')
                             ->label('Email address')
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(191),
-                        DateTimePicker::make('email_verified_at')
-                            ->label('Email Verified At'),
-                        TextInput::make('password')
-                            ->password()
-                            ->required(fn (string $context): bool => $context === 'create')
-                            ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                            ->dehydrated(fn ($state) => filled($state))
-                            ->revealable()
-                            ->helperText('Leave blank to keep current password'),
-                    ])
-                    ->columns(2),
-                
-                Section::make('Roles & Permissions')
-                    ->schema([
+
                         Select::make('roles')
                             ->relationship('roles', 'name')
                             ->multiple()
                             ->preload()
                             ->searchable()
                             ->placeholder('Select roles for this user')
-                            ->helperText('Users inherit all permissions from their roles'),
-                    ])
-                    ->columns(1),
+                            ->columnSpan(2),
+
+                        Select::make('organization_id')
+                            ->label('Organization')
+                            ->relationship('organization', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('Select organization')
+                            ->columnSpan(2),
+
+                        TextInput::make('password')
+                            ->password()
+                            ->required(fn (string $context): bool => $context === 'create')
+                            ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->revealable(),
+
+                        TextInput::make('password_confirmation')
+                            ->password()
+                            ->label('Confirm Password')
+                            ->required(fn (string $context): bool => $context === 'create')
+                            ->revealable(),
+                    ]),
             ]);
     }
 }

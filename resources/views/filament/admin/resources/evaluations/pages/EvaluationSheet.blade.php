@@ -1,12 +1,5 @@
 <x-filament-panels::page>
     <div class="space-y-6">
-        {{-- Page Header --}}
-        <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">
-                {{ ucfirst($this->type) }} Evaluation - {{ $this->student->name }}
-            </h2>
-            <p class="text-gray-600">Organization: {{ $this->organization->name }}</p>
-        </div>
 
         {{-- Evaluation Form --}}
         <form wire:submit="save">
@@ -103,13 +96,6 @@
                     </table>
                 </div>
             </div>
-            @if(!$this->isLocked)
-                <div class="mt-6 flex justify-end">
-                    <button type="submit" class="filament-button filament-button--success">
-                        Submit Evaluation
-                    </button>
-                </div>
-            @endif
         </form>
     </div>
 </x-filament-panels::page>

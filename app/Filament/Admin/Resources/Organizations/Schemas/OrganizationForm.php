@@ -26,7 +26,6 @@ class OrganizationForm
                             ->directory('organization-logos')
                             ->maxSize(2048)
                             ->acceptedFileTypes(['image/png', 'image/jpg', 'image/jpeg', 'image/svg+xml'])
-                            ->helperText('Optional. Upload an organization logo (max 2MB)')
                             ->columnSpan(1),
                     ])
                     ->columns(2)

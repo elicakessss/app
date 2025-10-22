@@ -76,14 +76,14 @@ class EvaluateStudent extends Page implements HasForms
     public function getTitle(): string|Htmlable
     {
         $evaluatorTitle = ucfirst($this->type);
-        return "{$evaluatorTitle} Evaluation - {$this->student->name}";
+        return "{$evaluatorTitle} Evaluation for {$this->student->name}";
     }
 
     public function getSubheading(): string|Htmlable|null
     {
-        // Show the evaluation event and organization for context
         $orgName = $this->evaluation->organization->name ?? 'Organization';
-        return "Evaluation: {$this->evaluation->name} — {$orgName} ({$this->evaluation->year})";
+        $yearRange = $this->evaluation->year . '-' . ($this->evaluation->year + 1);
+        return "Organization: {$orgName}{$this->evaluation->name} ({$yearRange})";
     }
 
     public function form(Schema $schema): Schema

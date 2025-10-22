@@ -24,35 +24,32 @@ class StudentsTable
     {
         return $table
             ->columns([
-                Split::make([
-                    ImageColumn::make('avatar')
-                        ->circular()
-                        ->size(50)
-                        ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF')
-                        ->grow(false),
-                    
-                    Stack::make([
-                        TextColumn::make('name')
-                            ->weight('medium')
-                            ->searchable(),
-                        
-                        TextColumn::make('school_number')
-                            ->searchable()
-                            ->color('gray')
-                            ->size('sm'),
-                    ]),
-                    
-                    TextColumn::make('email')
-                        ->searchable()
-                        ->copyable()
-                        ->icon('heroicon-o-envelope')
-                        ->label('Email'),
-                        
-                    TextColumn::make('created_at')
-                        ->dateTime()
-                        ->label('Registered'),
+                ImageColumn::make('avatar')
+                    ->label(' ')
+                    ->circular()
+                    ->size(50)
+                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF')
+                    ->grow(false),
 
-                ]),
+                TextColumn::make('name')
+                    ->weight('medium')
+                    ->searchable(),
+
+                TextColumn::make('school_number')
+                    ->searchable()
+                    ->label('ID Number')
+                    ->color('gray')
+                    ->size('sm'),
+
+                TextColumn::make('email')
+                    ->searchable()
+                    ->copyable()
+                    ->icon('heroicon-o-envelope')
+                    ->label('Email'),
+
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->label('Registered'),
             ])
             ->filters([
                 //
@@ -60,11 +57,7 @@ class StudentsTable
             ->recordUrl(
                 fn (Student $record): string => route('filament.admin.resources.students.edit', $record),
             )
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ])
+            // Bulk actions removed
             ->emptyStateHeading('No students yet')
             ->emptyStateDescription('Students will appear here once they are registered.');
     }

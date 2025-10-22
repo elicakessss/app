@@ -16,4 +16,9 @@ class ListPermissions extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    public function getSubheading(): ?string
+    {
+        return 'Manage all permissions that can be executed by users in the system';
+    }
 }

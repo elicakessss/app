@@ -71,24 +71,25 @@ class Rank extends Model
     /**
      * Update or create final result for a student
      */
-    public static function updateForStudent(int $evaluationId, int $studentId): void
+    public static function updateForStudent(int $evaluationId, int $studentId, int $organizationId): void
     {
         $evaluationScores = EvaluationScore::where('evaluation_id', $evaluationId)
             ->where('student_id', $studentId)
             ->get()
             ->keyBy('evaluator_type');
-        
+
         $rank = self::firstOrCreate([
             'evaluation_id' => $evaluationId,
             'student_id' => $studentId,
+            'organization_id' => $organizationId,
         ]);
 
         // Calculate weighted breakdown
         $breakdown = self::calculateBreakdown($evaluationScores);
-        
+
         // Determine completion status
         $isFinalized = self::isFinalized($evaluationScores);
-        
+
         // Calculate final score and rank
         [$finalScore, $rankTier, $status] = self::computeFinalRanking($breakdown, $isFinalized);
 

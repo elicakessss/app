@@ -21,8 +21,7 @@ class RolesTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
-                    ->sortable()
-                    ->weight('bold'),
+                    ->sortable(),
                 TextColumn::make('permissions_count')
                     ->label('Permissions')
                     ->counts('permissions')

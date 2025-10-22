@@ -16,4 +16,9 @@ class ListRoles extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    public function getSubheading(): ?string
+    {
+        return 'Manage all roles that can be assigned to users in the system';
+    }
 }

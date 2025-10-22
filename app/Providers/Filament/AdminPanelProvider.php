@@ -50,7 +50,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Admin\Widgets\EvaluationProgressWidget::class,
                 \App\Filament\Admin\Widgets\RankingOverviewWidget::class,
-                \App\Filament\Admin\Widgets\OrganizationSummaryWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -18,7 +18,14 @@ class EvaluationForm
                     ->schema([
                         Select::make('organization_id')
                             ->label('Organization')
-                            ->relationship('organization', 'name')
+                            ->options(function () {
+                                $user = auth()->user();
+                                if ($user && $user->organization_id) {
+                                    return \App\Models\Organization::where('id', $user->organization_id)
+                                        ->pluck('name', 'id');
+                                }
+                                return \App\Models\Organization::pluck('name', 'id');
+                            })
                             ->required(),
                         TextInput::make('year')
                             ->label('Academic Year')

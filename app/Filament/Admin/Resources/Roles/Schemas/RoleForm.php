@@ -17,6 +17,7 @@ class RoleForm
                 Section::make('Role Information')
                     ->schema([
                         TextInput::make('name')
+                            ->label('Role Name')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(125)
@@ -24,10 +25,11 @@ class RoleForm
                             ->helperText(fn ($record) => 
                                 $record && $record->name === 'Admin' 
                                     ? 'Admin role name cannot be changed to prevent system lockout'
-                                    : 'Enter a unique name for this role'
+                                    : ' '
                             ),
                         TextInput::make('guard_name')
                             ->default('web')
+                            ->label('Guard Name')
                             ->required()
                             ->maxLength(125)
                             ->helperText('Guard name (usually "web")'),

@@ -10,7 +10,7 @@ use App\Filament\Admin\Resources\Evaluations\EvaluationResource;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Actions\AttachAction;
+use Filament\Actions\AttachAction; 
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\Action;
@@ -93,7 +93,7 @@ class StudentsRelationManager extends RelationManager
                 ->label('Add Student')
                 ->form($this->getAttachForm())
                 ->preloadRecordSelect(),
-            // Removed bulk peer assignment action
+
         ];
     }
 

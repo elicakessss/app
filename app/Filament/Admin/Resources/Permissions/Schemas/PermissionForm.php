@@ -18,14 +18,15 @@ class PermissionForm
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(125)
-                            ->helperText('Enter a unique permission name (e.g., "view users", "edit posts")'),
+                            ->helperText('Enter a unique permission name.'),
                         TextInput::make('guard_name')
                             ->default('web')
                             ->required()
                             ->maxLength(125)
                             ->helperText('Guard name (usually "web")'),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->columnSpanFull(),
             ]);
     }
 }

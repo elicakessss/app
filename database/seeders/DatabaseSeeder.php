@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
         // Seed roles, permissions, departments and admin user
         $this->call([
             RolePermissionSeeder::class,
-            OrganizationSeeder::class,  
         ]);
 
         // Create single admin user
@@ -25,7 +24,6 @@ class DatabaseSeeder extends Seeder
             'name' => 'Administrator',
             'email' => 'test@example.com',
             'password' => bcrypt('password'),
-            'department_id' => null, // Admin has no department restriction
         ])->assignRole('Admin');
     }
 }

@@ -20,11 +20,10 @@ class ViewEvaluation extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            EditAction::make(),
+            EditAction::make()->label('Edit Evaluation'),
         ];
     }
 
-    // Removed getInfolist() to let the resource's getViewSchema() handle InfoList rendering
 
     public function getEvaluationStatus(int $studentId, string $evaluatorType): ?string
     {
@@ -40,9 +39,7 @@ class ViewEvaluation extends ViewRecord
     protected function getViewContent(): array
     {
         return array_merge(
-            // InfoList from the resource
             [$this->getInfolist()],
-            // Relation managers registered on the resource
             $this->getRelationManagerComponents()
         );
     }
