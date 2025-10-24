@@ -44,9 +44,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 NavigationGroup::make()
-                    ->label('System Settings')
+                    ->label('Admin Settings')
                     ->collapsible(),
             ])
+            ->collapsibleNavigationGroups(false)
+
             ->widgets([
                 \App\Filament\Admin\Widgets\EvaluationProgressWidget::class,
                 \App\Filament\Admin\Widgets\RankingOverviewWidget::class,

@@ -46,6 +46,17 @@ class ProfileInfolist
                                 ->dateTime('M j, Y g:i A'),
                         ]),
                 ]),
+            Section::make('Participated Evaluations')
+                ->schema([
+                    \Filament\Infolists\Components\RepeatableEntry::make('evaluations')
+                        ->label('Evaluations')
+                        ->table([
+                            \Filament\Infolists\Components\TextEntry::make('name')->label('Evaluation Name'),
+                            \Filament\Infolists\Components\TextEntry::make('organization.name')->label('Organization'),
+                            \Filament\Infolists\Components\TextEntry::make('year')->label('Year'),
+                            \Filament\Infolists\Components\TextEntry::make('pivot.position')->label('Role/Position'),
+                        ])
+                ]),
         ]);
     }
 }

@@ -16,17 +16,15 @@ use Filament\Tables\Table;
 
 class CertificateResource extends Resource
 {
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->where('student_id', auth()->id());
+    }
     protected static ?string $model = Certificate::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'Certificate';
-
-    // Hide from admin panel - this should only be in student panel
-    public static function canViewAny(): bool
-    {
-        return false;
-    }
 
     public static function form(Schema $schema): Schema
     {

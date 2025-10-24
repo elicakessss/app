@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class EvaluationResource extends Resource
 {
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-check';
     protected static ?int $navigationSort = 20;
 
     protected static ?string $navigationLabel = 'Evaluations';

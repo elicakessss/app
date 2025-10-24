@@ -16,4 +16,9 @@ class ListCertificates extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    public function getSubheading(): ?string
+    {
+        return 'Manage your certificates.';
+    }
 }

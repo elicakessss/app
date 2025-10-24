@@ -52,7 +52,6 @@ class RankResource extends Resource
     {
         return [
             'index' => ListRanks::route('/'),
-            'view' => ViewRank::route('/{record}'),
         ];
     }
 }

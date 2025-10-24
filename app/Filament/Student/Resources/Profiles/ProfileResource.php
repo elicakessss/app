@@ -14,6 +14,7 @@ use Filament\Schemas\Schema;
 
 class ProfileResource extends Resource
 {
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-user-circle';
     protected static ?string $model = Student::class;
 
 

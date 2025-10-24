@@ -67,4 +67,11 @@ class Student extends Authenticatable
     {
         return $this->hasMany(EvaluationPeerEvaluator::class, 'evaluator_student_id');
     }
+    /**
+     * Get the certificates for the student.
+     */
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
 }

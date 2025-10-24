@@ -16,4 +16,9 @@ class EditCertificate extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+        public function getSubheading(): ?string
+    {
+        return 'Edit your certificate details.';
+    }
 }
