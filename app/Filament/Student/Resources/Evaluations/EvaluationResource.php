@@ -25,7 +25,7 @@ class EvaluationResource extends Resource
 
     protected static ?string $modelLabel = 'Evaluation Task';
 
-    protected static ?string $pluralModelLabel = 'My Evaluations';
+    protected static ?string $pluralModelLabel = 'Evaluations';
 
     protected static ?string $recordTitleAttribute = 'name';
 

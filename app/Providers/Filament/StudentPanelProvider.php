@@ -50,6 +50,7 @@ class StudentPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->darkMode(false)
             ->authMiddleware([
                 Authenticate::class,
             ]);

@@ -13,7 +13,7 @@ class ListEvaluations extends Page
 {
     protected static string $resource = OrganizationResource::class;
 
-    protected ?string $heading = 'My Evaluations';
+    protected ?string $heading = 'Evaluations';
     
     protected ?string $subheading = 'Complete your self-evaluations and assigned peer evaluations';
 
