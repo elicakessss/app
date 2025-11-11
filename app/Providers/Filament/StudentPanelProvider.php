@@ -26,7 +26,6 @@ class StudentPanelProvider extends PanelProvider
             ->login()
             ->authGuard('student')
             ->authPasswordBroker('students')
-            ->topNavigation()   
             ->colors([
                 'danger' => Color::Rose,
                 'gray' => Color::Slate,
@@ -50,7 +49,7 @@ class StudentPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->darkMode(false)
+            // ->darkMode(false)
             ->authMiddleware([
                 Authenticate::class,
             ]);

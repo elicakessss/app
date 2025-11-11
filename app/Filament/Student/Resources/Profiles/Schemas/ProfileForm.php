@@ -3,6 +3,8 @@
 namespace App\Filament\Student\Resources\Profiles\Schemas;
 
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
@@ -15,11 +17,21 @@ class ProfileForm
             ->components([
                 Section::make('Personal Information')
                     ->schema([
+                        FileUpload::make('image')
+                            ->label('Profile Image')
+                            ->image()
+                            ->directory('student-avatars')
+                            ->maxSize(1024),
+
+                        Textarea::make('description')
+                            ->label('Bio')
+                            ->rows(4)
+                            ->maxLength(1000),
                         TextInput::make('name')
                             ->label('Full Name')
                             ->required()
                             ->maxLength(255),
-                        
+
                         TextInput::make('email')
                             ->label('Email Address')
                             ->email()
@@ -45,7 +57,7 @@ class ProfileForm
                                     };
                                 },
                             ]),
-                        
+
                         TextInput::make('password')
                             ->label('New Password')
                             ->password()
@@ -53,7 +65,7 @@ class ProfileForm
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                             ->minLength(8)
                             ->same('password_confirmation'),
-                        
+
                         TextInput::make('password_confirmation')
                             ->label('Confirm New Password')
                             ->password()

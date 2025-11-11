@@ -13,14 +13,35 @@ class ProfileInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Profile Information')
+            // Single Profile section with image and details arranged in a grid
+            Section::make('Profile Section')
+                ->columnSpanFull()
                 ->schema([
-                    TextEntry::make('name')->label('Full Name: ')->inlineLabel(),
-                    TextEntry::make('email')->label('Email Address: ')->copyable()->inlineLabel(),
-                    TextEntry::make('school_number')->label('School Number: ')->badge()->color('gray')->inlineLabel(),
+                    Grid::make(3)
+                        ->schema([
+                            ImageEntry::make('image')
+                                ->label('Profile Picture')
+                                ->hiddenLabel()
+                                ->height(240)
+                                ->width(240)
+                                ->circular()
+                                ->alignCenter()
+                                ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name ?? 'Student') . '&background=ffffff')
+                                ->columnSpan(1),
+
+                            Grid::make(1)
+                                ->schema([
+                                    TextEntry::make('name')->label('Full Name: ')->inlineLabel(),
+                                    TextEntry::make('email')->label('Email Address: ')->copyable()->inlineLabel(),
+                                    TextEntry::make('school_number')->label('School Number: ')->badge()->color('gray')->inlineLabel(),
+                                    TextEntry::make('description')->label('Bio')->inlineLabel(),
+                                ])
+                                ->columnSpan(2),
+                        ]),
                 ]),
 
             Section::make('Participated Organizations')
+                ->columnSpanFull()
                 ->schema([
                     \Filament\Infolists\Components\RepeatableEntry::make('evaluations')
                         ->label('Evaluations')
@@ -49,14 +70,8 @@ class ProfileInfolist
                                         ])
                                         ->columnSpan(2)
                                 ])
-    
-                        ])
-                ]),
 
-            Section::make('Account Details')
-                ->schema([
-                    TextEntry::make('created_at')->label('Account Created')->dateTime('M j, Y g:i A'),
-                    TextEntry::make('updated_at')->label('Last Updated')->dateTime('M j, Y g:i A'),
+                        ])
                 ]),
         ]);
     }

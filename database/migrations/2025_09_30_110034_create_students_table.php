@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            // E-Portfolio fields
+            $table->string('image')->nullable()->comment('Profile image path or URL');
+            $table->text('description')->nullable()->comment('Short bio / description for the student');
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

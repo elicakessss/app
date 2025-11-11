@@ -32,12 +32,14 @@
 	</style>
 		@if($tasks->isEmpty())
 			<x-filament::card>
-				<div class="text-center py-12">
-					<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-						<x-heroicon-o-clipboard-document-check class="h-6 w-6 text-gray-400" />
+				<div class="flex items-center gap-4">
+					<div class="flex-shrink-0" style="width:48px;height:48px;">
+						<x-heroicon-o-clipboard-document-check class="text-gray-400" style="width:48px;height:48px;max-width:none;" />
+						</div>
+					<div>
+						<h3 class="text-sm font-medium text-gray-900">No evaluations</h3>
+						<p class="text-sm text-gray-500">You don't have any evaluation tasks assigned yet.</p>
 					</div>
-					<h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No evaluations</h3>
-					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">You don't have any evaluation tasks assigned yet.</p>
 				</div>
 			</x-filament::card>
 		@else
@@ -66,14 +68,14 @@
 								<span class="text-gray-500 dark:text-gray-400">{{ $task['organization_name'] }}</span>
 							</td>
 							<td>
-								<x-filament::badge 
+								<x-filament::badge
 									:color="$task['task_type'] === 'Self-Evaluation' ? 'info' : 'warning'"
 									:icon="$task['task_type'] === 'Self-Evaluation' ? 'heroicon-s-user' : 'heroicon-s-users'">
 									{{ $task['task_type'] }}
 								</x-filament::badge>
 							</td>
 							<td>
-								<x-filament::badge 
+								<x-filament::badge
 									:color="$task['status'] === 'Completed' ? 'success' : 'warning'"
 									:icon="$task['status'] === 'Completed' ? 'heroicon-s-check-circle' : 'heroicon-s-clock'">
 									{{ $task['status'] }}
@@ -81,7 +83,7 @@
 							</td>
 							<td>
 								@if($task['task_type'] === 'Self-Evaluation')
-									<x-filament::button 
+									<x-filament::button
 										tag="a"
 										:href="route('filament.student.resources.evaluations.self-evaluate', ['evaluation' => $task['evaluation_id']])"
 										size="sm"
@@ -93,7 +95,7 @@
 										@endif
 									</x-filament::button>
 								@else
-									<x-filament::button 
+									<x-filament::button
 										tag="a"
 										:href="route('filament.student.resources.evaluations.peer-evaluate', ['evaluation' => $task['evaluation_id'], 'student' => $task['target_id']])"
 										size="sm"
