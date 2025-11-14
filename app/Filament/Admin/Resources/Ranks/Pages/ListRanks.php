@@ -20,4 +20,14 @@ class ListRanks extends ListRecords
     {
         return 'Review student ranks based on evaluation scores.';
     }
+
+    /**
+     * Display stat widgets above the ranks table.
+     */
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Admin\Widgets\RanksStatsWidget::class,
+        ];
+    }
 }

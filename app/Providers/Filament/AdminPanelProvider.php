@@ -57,6 +57,8 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Admin\Widgets\AdminStatsOverviewWidget::class,
                 \App\Filament\Admin\Widgets\LatestOrganizationsWidget::class,
                 \App\Filament\Admin\Widgets\RanksChartWidget::class,
+                // Register the ranks stats widget so Livewire/Filament can mount it when used in pages
+                \App\Filament\Admin\Widgets\RanksStatsWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

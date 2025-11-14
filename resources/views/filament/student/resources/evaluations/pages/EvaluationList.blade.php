@@ -47,7 +47,6 @@
 				<table class="evaluation-table">
 					<thead>
 						<tr>
-							<th>Photo</th>
 							<th>Evaluatee</th>
 							<th>Organization</th>
 							<th>Type</th>
@@ -58,9 +57,6 @@
 					<tbody>
 						@foreach($tasks as $task)
 						<tr>
-							<td>
-								<img src="{{ $task['avatar_url'] ?? 'https://via.placeholder.com/100?text=Photo' }}" alt="Student Photo" class="evaluation-avatar">
-							</td>
 							<td>
 								<span class="font-semibold text-gray-900 dark:text-white">{{ $task['target_name'] }}</span>
 							</td>

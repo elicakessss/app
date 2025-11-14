@@ -8,6 +8,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Filament\Tables\Table;
+use Filament\Actions\Action;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -24,7 +25,7 @@ class LatestOrganizationsWidget extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(Organization::query()->withCount('evaluations'))
+            ->query(Organization::query()->withCount('evaluations')->orderBy('evaluations_count', 'desc')->limit(3))
             ->columns([
                 ImageColumn::make('logo')
                     ->label('Logo')
@@ -36,7 +37,6 @@ class LatestOrganizationsWidget extends BaseWidget
                 TextColumn::make('name')
                     ->label('Name')
                     ->weight(FontWeight::SemiBold)
-                    ->searchable()
                     ->limit(30),
 
                 BadgeColumn::make('evaluations_count')
@@ -53,7 +53,12 @@ class LatestOrganizationsWidget extends BaseWidget
             ->defaultSort('evaluations_count', 'desc')
             ->bulkActions([])
             ->filters([])
-            ->headerActions([])
+            ->headerActions([
+                Action::make('view_all')
+                    ->label('View All Organizations')
+                    ->icon('heroicon-o-eye')
+                    ->url(\App\Filament\Admin\Resources\Organizations\OrganizationResource::getUrl('index')),
+            ])
             ->paginated(false);
     }
 }

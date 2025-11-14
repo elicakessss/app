@@ -10,12 +10,13 @@ use App\Filament\Admin\Resources\Evaluations\EvaluationResource;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Actions\AttachAction; 
+use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\Action;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Storage;
 
 // Students Relation Manager: Manages student memberships and evaluations within organizations.
 class StudentsRelationManager extends RelationManager
@@ -58,11 +59,12 @@ class StudentsRelationManager extends RelationManager
     {
         return [
             \Filament\Tables\Columns\ColumnGroup::make('Student', [
-                \Filament\Tables\Columns\ImageColumn::make('profile_picture')
+                \Filament\Tables\Columns\ImageColumn::make('image')
                     ->label('Profile')
                     ->circular()
                     ->size(40)
-                    ->getStateUsing(fn ($record) => $record->profile_picture_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($record->name)),
+                    ->url(fn ($record) => $record->image ? Storage::url($record->image) : null)
+                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF'),
                 \Filament\Tables\Columns\TextColumn::make('name')
                     ->label('Name')
                     ->searchable()

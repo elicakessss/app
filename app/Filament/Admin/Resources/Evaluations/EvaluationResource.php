@@ -55,7 +55,7 @@ class EvaluationResource extends Resource
             Section::make('Peer Evaluator Details')
                 ->schema([
                     RepeatableEntry::make('peer_evaluators')
-                        ->label('Nigga') 
+                        ->label('Nigga')
                         ->hiddenLabel()
                         ->state(function ($record) {
                             return EvaluationPeerEvaluator::where('evaluation_id', $record->id)
@@ -104,7 +104,7 @@ class EvaluationResource extends Resource
     public static function canAccess(): bool
     {
         // Allow access for admin role or users with manage-evaluations permission
-        return auth()->user()?->hasRole('Admin') || 
+        return auth()->user()?->hasRole('Admin') ||
                auth()->user()?->can('manage evaluations') ?? false;
     }
 
@@ -138,13 +138,13 @@ class EvaluationResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->with(['user', 'organization']);
-        
+
         // Filter evaluations by user's organization
         $user = auth()->user();
         if ($user && $user->organization_id) {
             $query->where('organization_id', $user->organization_id);
         }
-        
+
         return $query;
     }
 
@@ -173,7 +173,10 @@ class EvaluationResource extends Resource
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['name', 'description', 'organization.name'];
+        // The evaluations table in some environments may not include 'name' or 'description'
+        // columns. Restrict global search to related organization name to avoid SQL errors
+        // when those columns are missing. If you add those columns later, restore them here.
+        return ['organization.name'];
     }
 
     public static function getGlobalSearchResultDetails($record): array

@@ -102,17 +102,17 @@ class RanksTable
                         'bronze' => 'Bronze',
                         'none' => 'None',
                     ]),
-                    
+
                 SelectFilter::make('status')
                     ->options([
                         'finalized' => 'Finalized',
                         'pending' => 'Pending',
                     ]),
-                    
+
                 SelectFilter::make('organization_id')
                     ->relationship('organization', 'name')
                     ->label('Organization'),
-                    
+
                 SelectFilter::make('year')
                     ->options(function () {
                         return \App\Models\Evaluation::distinct('year')

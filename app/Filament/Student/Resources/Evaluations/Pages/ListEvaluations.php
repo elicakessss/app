@@ -14,7 +14,7 @@ class ListEvaluations extends Page
     protected static string $resource = OrganizationResource::class;
 
     protected ?string $heading = 'Evaluations';
-    
+
     protected ?string $subheading = 'Complete your self-evaluations and assigned peer evaluations';
 
     protected function getHeaderActions(): array
@@ -44,11 +44,13 @@ class ListEvaluations extends Page
 
         $tasks = collect();
         $student = Student::with(['evaluations.organization'])->find($studentId);
-        
+
         if (!$student) {
             return collect([]);
         }
 
+
+        // No avatar handling here — images removed from the evaluations table to avoid broken avatars.
 
         // Self-evaluation tasks
         foreach ($student->evaluations as $evaluation) {

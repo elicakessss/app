@@ -21,6 +21,7 @@ class ProfileForm
                             ->label('Profile Image')
                             ->image()
                             ->directory('student-avatars')
+                            ->disk('public')
                             ->maxSize(1024),
 
                         Textarea::make('description')
