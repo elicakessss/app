@@ -8,6 +8,7 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ColumnGroup;
 use Filament\Tables\Columns\ImageColumn;
+use Illuminate\Support\Facades\Storage;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Filters\SelectFilter;
@@ -24,13 +25,15 @@ class RanksTable
         return $table
             ->columns([
                 ColumnGroup::make('Student', [
-                    ImageColumn::make('student.avatar')
+                    ImageColumn::make('student.image')
                         ->circular()
                         ->size(50)
-                        ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->student->name) . '&color=7F9CF5&background=EBF4FF')
                         ->grow(false)
                         ->label(' ')
-                        ->alignCenter(),
+                        ->alignCenter()
+                        ->url(fn ($record) => ($record->student && $record->student->image) ? Storage::url($record->student->image) : null)
+                        ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode(optional($record->student)->name ?? 'Student') . '&color=7F9CF5&background=EBF4FF')
+                        ->extraAttributes(['class' => 'ring-1 ring-gray-100 dark:ring-gray-800']),
                     TextColumn::make('student.name')
                         ->weight('medium')
                         ->searchable(),

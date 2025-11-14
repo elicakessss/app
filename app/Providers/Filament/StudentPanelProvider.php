@@ -9,6 +9,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Illuminate\Support\HtmlString;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -35,6 +36,9 @@ class StudentPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->font('Segoe UI Variable')
+            ->brandLogo(fn () => new HtmlString('<img src="' . asset('images/psgears.png') . '" alt="Paulinian E-Portfolio" style="height: 40px;" />'))
+            ->darkModeBrandLogo(fn () => new HtmlString('<img src="' . asset('images/psgears.png') . '" alt="Paulinian E-Portfolio" style="height:40px;" />'))
+            ->brandLogoHeight('36px')
             ->breadcrumbs(false)
             ->discoverResources(in: app_path('Filament/Student/Resources'), for: 'App\Filament\Student\Resources')
             ->discoverPages(in: app_path('Filament/Student/Pages'), for: 'App\Filament\Student\Pages')

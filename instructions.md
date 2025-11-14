@@ -1,8 +1,5 @@
-Task Overview: Update the Student Panel to achieve it's goal to serve as an E-Portfolio. 
+Task Overview: Add widgets to admin dashboard. Visit this link to use it as your reference: https://filamentphp.com/docs/4.x/widgets/stats-overview#!. Avoid using custom widgets.
 
-Task 1: Update the migration file for the student's table. Make it include an image so that students can upload their image. And a description so students can write a bio for themselves. Note: This app is not yet in production so we can just migrate fresh.
+Stat Cards: Add three stat cards at the very top. Add one stat card to display the total bumber of accounts in the system (Add the student accounts and user accounts). Add another to display the number of user accounts. And add one more to display student acoounts.
 
-Task 2: Update the infolist layout of the Profile resource in the Student's Panel. to follow the layout of image.png Lets not make this complicated. 
-
-
-Notes from the user: Please scan the project if you need to get a grasp of this app. In a nutshell this is an E-Portfolio and Ranking System made using Filament Version 4. The Admin Panel is used for the ranking part while the Student Panel is for students to manage their portfolios. 
+Table Widget and Chart Widget: These widgets are located below the stat cards. The table widget must display all organizations in the system. It should display it's logo, name, and number of evaluations created in that organization. The Chart widget should display a chart showing the ranks obtained. Preferably a bar graph

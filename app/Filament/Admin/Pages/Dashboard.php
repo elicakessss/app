@@ -6,15 +6,13 @@ use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
 {
-    public function getColumns(): int | array
-    {
-        return [
-            'default' => 1,
-            'sm' => 2,
-            'md' => 2,
-            'lg' => 2,
-            'xl' => 2,
-            '2xl' => 2,
-        ];
-    }
+	/**
+	 * Use a 12-column grid so widgets can use 1-12 spans. This lets us place two
+	 * widgets side-by-side by giving each a columnSpan of 6.
+	 */
+	public function getColumns(): int | array
+	{
+		return 12;
+	}
+
 }

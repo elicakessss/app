@@ -7,6 +7,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Illuminate\Support\Facades\Storage;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Table;
@@ -24,13 +25,15 @@ class StudentsTable
     {
         return $table
             ->columns([
-                ImageColumn::make('avatar')
+                ImageColumn::make('image')
                     ->label(' ')
                     ->circular()
                     ->size(50)
-                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF')
                     ->grow(false)
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->url(fn ($record) => $record->image ? Storage::url($record->image) : null)
+                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=7F9CF5&background=EBF4FF')
+                    ->extraAttributes(['class' => 'ring-1 ring-gray-100 dark:ring-gray-800']),
 
                 TextColumn::make('name')
                     ->weight('medium')

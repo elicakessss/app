@@ -11,6 +11,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use App\Filament\Admin\Pages\Dashboard;
+use Illuminate\Support\HtmlString;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -36,6 +37,9 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->font('Segoe UI Variable')
+            ->brandLogo(fn () => new HtmlString('<img src="' . asset('images/psgears.png') . '" alt="Paulinian E-Portfolio" style="height: 40px;" />'))
+            ->darkModeBrandLogo(fn () => new HtmlString('<img src="' . asset('images/psgears.png') . '" alt="Paulinian E-Portfolio" style="height:40px;" />'))
+            ->brandLogoHeight('36px')
             ->breadcrumbs(false)
             ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\Filament\Admin\Resources')
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\Filament\Admin\Pages')
@@ -50,8 +54,9 @@ class AdminPanelProvider extends PanelProvider
             ->collapsibleNavigationGroups(false)
 
             ->widgets([
-                \App\Filament\Admin\Widgets\EvaluationProgressWidget::class,
-                \App\Filament\Admin\Widgets\RankingOverviewWidget::class,
+                \App\Filament\Admin\Widgets\AdminStatsOverviewWidget::class,
+                \App\Filament\Admin\Widgets\LatestOrganizationsWidget::class,
+                \App\Filament\Admin\Widgets\RanksChartWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
